@@ -1,6 +1,8 @@
 {
     'name': 'Timesheet in Odoo of Jira',
-    'depend': 'hr_timesheet',
+    'depends': [
+        'hr_timesheet',
+    ],
     'author': 'Group1',
     'data': [
         'security/timesheet_security.xml',
