@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<odoo>
+    <menuitem id = "timesheet_menu"
+              name = "Timesheet"/>
+    <act_window id="action_timesheet_views"
+                name = "Timesheet Views"
+                res_model = "timesheet.views"
+                view_mode = "tree"
+                />
+    <menuitem id = "menu_timesheet_views"
+              name = "Views"
+              action = "action_timesheet_views"
+              parent = "timesheet_menu"
+            />
+</odoo>
