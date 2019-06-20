@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="timesheet_line_tree" model="ir.ui.view">
+        <field name="name">Timesheet Line Tree View</field>
+        <field name="model">account.analytic.line</field>
+        <field name="arch" type="xml">
+            <tree editable="top" string="Timesheet Activities" import="false">
+                <field name="date"/>
+                <field name="task_id" context="{'default_project_id': project_id}" domain="[('project_id', '=', project_id)]"/>
+                <field name="project_id" required="1"/>
+                <field name="unit_amount" widget="timesheet_uom" sum="Total"/>
+            </tree>
+        </field>
+    </record>
+
+
+</odoo>
