@@ -1,7 +1,7 @@
 {
     'name': 'Timesheet in Odoo of Jira',
     'depends': [
-        'hr_timesheet',
+        'base'
     ],
     'author': 'Group1',
     'data': [
