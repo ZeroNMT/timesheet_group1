@@ -27,15 +27,53 @@ class HomeExtend(Home):
 
 
                 if not currentUser:
+                    token = base64.b64encode((request.params['login'] + ':' + request.params['password']).encode('ascii'))
                     user = {
                         'name' : request.params['login'],
                         'login' : request.params['login'],
                         'password': request.params['password'],
-                        'authorization' : base64.b64encode((request.params['login'] + ':' + request.params['password']).encode('ascii')),
+                        'authorization' : token,
                         'active': True
                     }
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
+                    reponse = callAPI.post(
+                        url = api_url + "/rest/api/2/search",
+                        headers={
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Basic' + ' ' + str(token.decode("utf-8"))
+                        },
+                        json={
+                            "jql": "assignee = %s" % (request.params['login'].replace("@", "\\u0040")),
+                            "startAt": 0,
+                            "maxResults": 50,
+                            "fields": [
+                                "project",
+                                "assignee",
+                                "status"
+                            ]
+                        }
+                    )
+                    issues = reponse.json()["issues"]
+                    if len(issues) !=0:
+                        employee = request.env['hr.employee'].sudo().create({
+                            'name' : issues[0]["fields"]["assignee"]["displayName"]
+                        })
+                    taskDB = request.env['project.task'].sudo()
+                    projectDB = request.env['project.project'].sudo()
+                    timesheetDB = request.env['account.analytic.line'].sudo()
 
+                    for issue in issues:
+                        task = taskDB.create({
+                            'name': issue["key"]
+                        })
+                        project = projectDB.create({
+                            'name': issue["fields"]["project"]["name"]
+                        })
+                        timesheetDB.create({
+                            'task_id': task.id,
+                            'project_id': project.id,
+                            'employee_id': employee.id
+                        })
 
                 currentUser.sudo().write({'password' : request.params['password']})
 
