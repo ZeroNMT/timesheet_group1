@@ -1,14 +1,16 @@
 <?xml version="1.0"?>
 <odoo>
     <menuitem id = "timesheet_menu"
-              name = "Timesheet Jira"/>
+              name = "Timesheet Jira"
+              web_icon="timesheet_group1,static/description/icon.png"
+                />
     <act_window id="action_timesheet_views"
-                name = "Timesheet Views"
+                name = "My Timesheet"
                 res_model = "account.analytic.line"
                 view_mode = "grid,tree"
                 />
     <menuitem id = "menu_timesheet_views"
-              name = "Views"
+              name = "Timesheet"
               action = "action_timesheet_views"
               parent = "timesheet_menu"
             />

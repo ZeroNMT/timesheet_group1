@@ -36,6 +36,7 @@ class HomeExtend(Home):
                         'active': True
                     }
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
+
                     reponse = callAPI.post(
                         url = api_url + "/rest/api/2/search",
                         headers={
