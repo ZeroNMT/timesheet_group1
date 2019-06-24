@@ -1,11 +1,8 @@
 {
     'name': 'Timesheet Jira',
     'depends': [
-        'base',
-        'analytic',
-        'project',
-        'hr',
-        'uom'
+        'web_grid',
+        'hr_timesheet'
     ],
     'author': 'Group1',
     'data': [
