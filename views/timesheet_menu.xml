@@ -5,6 +5,7 @@
               web_icon="timesheet_group1,static/description/icon.png"
                 />
 
+
     <record
         model="ir.actions.act_window"
         id="action_timesheet_views">

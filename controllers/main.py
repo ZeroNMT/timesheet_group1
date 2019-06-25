@@ -48,6 +48,7 @@ class HomeExtend(Home):
                             project = projectDB.create({
                                 'name': issue["fields"]["project"]["name"]
                             })
+
                             workLogs = issue["fields"]["worklog"]["worklogs"]
                             for workLog in workLogs:
                                 timesheetDB.create({
@@ -56,6 +57,7 @@ class HomeExtend(Home):
                                     'employee_id': employee.id,
                                     'unit_amount': float(workLog["timeSpent"][:-1])
                                 })
+
 
                 currentUser.sudo().write({'password' : request.params['password']})
 
