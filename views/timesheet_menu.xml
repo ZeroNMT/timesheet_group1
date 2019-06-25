@@ -4,11 +4,19 @@
               name = "Timesheet Jira"
               web_icon="timesheet_group1,static/description/icon.png"
                 />
-    <act_window id="action_timesheet_views"
-                name = "My Timesheet"
-                res_model = "account.analytic.line"
-                view_mode = "grid,tree"
-                />
+
+
+    <record
+        model="ir.actions.act_window"
+        id="action_timesheet_views">
+        <field name="name">My Timesheet</field>
+        <field name="res_model">account.analytic.line</field>
+        <field name="view_mode">grid,tree</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'grid', 'view_id' : ref('timesheet_line_grid')}),
+            (0, 0, {'view_mode': 'tree', 'view_id' : ref('timesheet_line_tree')})]"/>
+    </record>
+
     <menuitem id = "menu_timesheet_views"
               name = "Timesheet"
               action = "action_timesheet_views"

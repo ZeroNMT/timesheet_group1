@@ -39,7 +39,8 @@ class JiraServices():
                     "fields": [
                         "project",
                         "assignee",
-                        "status"
+                        "status",
+                        "worklog"
                     ]
                 }
             )
