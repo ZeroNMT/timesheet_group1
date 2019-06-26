@@ -1,2 +1,2 @@
-from . import timesheet_views
-from . import res_user
+from . import timesheet_line
+from . import users

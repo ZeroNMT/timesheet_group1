@@ -1,13 +1,15 @@
 {
-    'name': 'Timesheet in Odoo of Jira',
+    'name': 'Timesheet Jira',
     'depends': [
-        'base'
+        'web_grid',
+        'hr_timesheet'
     ],
     'author': 'Group1',
     'data': [
-        'security/timesheet_security.xml',
         'security/ir.model.access.csv',
+        'views/timesheet_views.xml',
         'views/timesheet_menu.xml',
+        'wizard/editTask.xml',
     ],
     'application': True,
 

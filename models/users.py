@@ -1,5 +1,5 @@
 from odoo import api, fields, models
 
-class Users(models.Model):
+class ResUsers(models.Model):
     _inherit = "res.users"
-    # authorization = fields.Char()
+    authorization = fields.Char()

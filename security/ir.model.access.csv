@@ -1,2 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_timesheet_views,access_timesheet_views,model_timesheet_views,base.group_user,1,0,0,0
+access_timesheet_line,access_timesheet_line,model_account_analytic_line,base.group_user,1,1,1,1
+access_user,access_user,model_res_users,base.group_user,1,1,1,1
