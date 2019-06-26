@@ -9,7 +9,7 @@
         'security/ir.model.access.csv',
         'views/timesheet_views.xml',
         'views/timesheet_menu.xml',
-
+        'wizard/editTask.xml',
     ],
     'application': True,
 
