@@ -40,7 +40,8 @@ class JiraServices():
                         "project",
                         "assignee",
                         "status",
-                        "worklog"
+                        "worklog",
+                        "summary"
                     ]
                 }
             )
@@ -54,5 +55,18 @@ class JiraServices():
 
         if reponse.status_code == 200:
             return allIssues
+        else:
+            return None
+
+    def get_user(self, username):
+        reponse = requests.get(
+            url = self.api_url + "/rest/api/2/user",
+            headers = self.header,
+            params = {
+                "username" : username
+            }
+        )
+        if reponse.status_code == 200:
+            return reponse.json()
         else:
             return None
