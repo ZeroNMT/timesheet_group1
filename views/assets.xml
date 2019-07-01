@@ -1,0 +1,7 @@
+<odoo>
+    <template id="assets_backend" name="grid assets" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/timesheet_group1/static/src/js/grid_controllers.js"/>
+        </xpath>
+    </template>
+</odoo>

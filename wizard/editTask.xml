@@ -1,20 +1,34 @@
 <?xml version="1.0"?>
 <odoo>
-
+  <record id="editTaskTree" model="ir.ui.view">
+    <field name="name">Edit Task</field>
+    <field name="model">edit.task</field>
+    <field name="arch" type="xml">
+      <tree>
+        <field name="project_name"/>
+        <field name="task_name"/>
+      </tree>
+    </field>
+  </record>
   <record id="editTask" model="ir.ui.view">
     <field name="name">Edit Task</field>
     <field name="model">edit.task</field>
     <field name="arch" type="xml">
       <form>
         <group>
-          <field name="project_name" />
+          <field name="date" />
+          <field name="des"/>
+          <field name="project_name"/>
           <field name="task_name" />
+          <field name="time_spent" widget="float_time"/>
+          <field name="project_id" invisible="True"/>
+          <field name="task_id" invisible="True"/>
         </group>
         <footer>
           <button type="object"
             name="button_send"
             string="Send Messages"
-            />
+          />
           <button special="cancel"
             name="cancel"
             string="Cancel"
