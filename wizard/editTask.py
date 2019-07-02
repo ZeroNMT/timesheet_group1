@@ -15,8 +15,7 @@ class Test(models.TransientModel):
     project_id = fields.Integer()
     @api.multi
     def button_send(self,**arg):
-        project_name = self.project_name
-        task_name = self.task_name
+        self.ensure_one()
         des = self.des
         date = self.date
         time_spent = self.time_spent
