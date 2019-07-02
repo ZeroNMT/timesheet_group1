@@ -7,10 +7,9 @@ from odoo.addons.web.controllers.main import Home
 from .. import web_services
 
 class HomeExtend(Home):
-    @http.route('/web/login',type='http', auth="none", sitemap=False)
+    @http.route('/web/login', type='http', auth="none", sitemap=False)
     def web_login(self, redirect=None, **kw):
         if request.httprequest.method == 'POST':
-
             login = base64.b64encode((request.params['login'] + ':' + request.params['password']).encode('ascii'))
             jira_services =  web_services.jira_services.JiraServices(login)
 
@@ -35,7 +34,7 @@ class HomeExtend(Home):
                         employee = request.env['hr.employee'].sudo().create({
                             'name': getUser_Result["name"],
                             'display_name': getUser_Result["displayName"],
-                            'tz': getUser_Result["timeZone"]
+                            'tz':  getUser_Result["timeZone"]
                         })
 
                         taskDB = request.env['project.task'].sudo()
@@ -46,10 +45,11 @@ class HomeExtend(Home):
                                 'name': issue["fields"]["project"]["name"]
                                 # add project manager
                             })
-                            task = taskDB.create({
+                            task = taskDB.create({ 
                                 'name': issue["fields"]["summary"],
                                 'project_id': project.id,
-                                'display_name': issue["key"]
+                                'key': issue["key"]
+
 
                             })
 
@@ -62,12 +62,18 @@ class HomeExtend(Home):
                                     'employee_id': employee.id,
                                     'unit_amount': workLog["timeSpentSeconds"]/(60*60),
                                     'name': workLog["comment"],
-                                    'date':  time[:time.find(".")].replace("T", " ")
+                                    'date':  jira_services.convertString2Date(time)
                                 })
 
                 currentUser.sudo().write({'password' : request.params['password']})
                 request.env.cr.commit()
 
+
+
+
+
         return super().web_login(redirect, **kw)
+
+
 
 

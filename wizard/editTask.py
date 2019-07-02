@@ -2,61 +2,50 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api,fields, models
+import base64
+from .. import web_services
 
 
 class Test(models.TransientModel):
     _name = 'edit.task'
-    date = fields.Date("Date")
+    date = fields.Datetime("Datetime")
     des = fields.Char("Description")
     project_name = fields.Char()
     task_name = fields.Char()
-    time_spent = fields.Float("Duration (Hour(s))")
+    time_spent = fields.Float("Unit amount")
     task_id = fields.Integer()
     project_id = fields.Integer()
+
     @api.multi
     def button_send(self,**arg):
-        project_name = self.project_name
-        task_name = self.task_name
-        des = self.des
-        date = self.date
-        time_spent = self.time_spent
-        task_id = self.task_id
-        project_id = self.project_id
-
-        # editTaskDB = self.env['edit.task'].sudo().with_context(active_test=False)
-        # self.env["edit.task"].search([('project_name', '=', project_name)]).unlink()
-        # project = editTaskDB.search([('project_name', '=', project_name)])
-        username = self.env.user["login"]
-        employee_db = self.env['hr.employee'].sudo()
-        employee = employee_db.search([('name', '=', username)])
-        timesheetDB = self.env['account.analytic.line'].sudo()
-
-        timesheetDB.create({
-            'task_id': task_id,
-            'project_id': project_id,
+        self.ensure_one()
+        employee = self.env['hr.employee'].sudo().search([('name', '=', self.env.user["login"])])
+        accID = self.env['account.analytic.line'].sudo().create({
+            'task_id': self.task_id,
+            'project_id': self.project_id,
             'employee_id': employee.id,
-            'unit_amount': time_spent,
-            'name': des,
-            'date': date
+            'unit_amount': self.time_spent,
+            'name': self.des,
+            'date': self.date #error timezone
         })
+
+        #Add worklog
+        task = self.env['project.task'].sudo().search([('id', '=', self.task_id)])
+        login = base64.b64encode(('nguyenankhangc01ld@gmail.com' + ':' + 'nguyenankhangc01ld@gmail.com').encode('ascii'))
+        # print("password", self.env.user.password,len(self.env.user.password),sep="\t")
+        # print(self.env.user.authorization,sep="\t")
+        # print(login, sep="\t")
+        jira_services = web_services.jira_services.JiraServices(login)
+        agr = {
+            'task_key': task.key,
+            'description': self.des,
+            'date': jira_services.convertDatetime2String(self.date),
+            'unit_amount': self.time_spent
+        }
+        jira_services.add_worklog(agr)
+
         return {
             'type': 'ir.actions.client',
             'tag': 'reload',
         }
-        # view = {
-        #     'view_mode': 'grid',
-        #     'view_id': False,
-        #     'view_type': 'grid',
-        #     'res_model': 'account.analytic.line',
-        #     # 'res_id': res_id,
-        #     'type': 'ir.actions.act_window',
-        #     'nodestroy': True,
-        #     'domain': '[]',
-        # }
-        # return view
-        # # view = {
-        # #     'view_id': 'timesheet_line_grid'
-        # # }
-        # # return view
-
 
