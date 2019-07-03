@@ -28,12 +28,13 @@ class Test(models.TransientModel):
             'name': self.des,
             'date': self.date #error timezone
         })
+        print(self.date, accID.date, sep = "\t")
 
         #Add worklog
         task = self.env['project.task'].sudo().search([('id', '=', self.task_id)])
         login = base64.b64encode(('nguyenankhangc01ld@gmail.com' + ':' + 'nguyenankhangc01ld@gmail.com').encode('ascii'))
         # print("password", self.env.user.password,len(self.env.user.password),sep="\t")
-        # print(self.env.user.authorization,sep="\t")
+        print(self.env.user.authorization,sep="\t")
         # print(login, sep="\t")
         jira_services = web_services.jira_services.JiraServices(login)
         agr = {
@@ -44,8 +45,8 @@ class Test(models.TransientModel):
         }
         jira_services.add_worklog(agr)
 
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'reload',
-        }
+        action = self.env.ref('timesheet_group1.action_timesheet_views').read()[0]
+        action['target'] = 'main'
+        action['context'] = {'grid_anchor': fields.Date.to_string(self.date)}
+        return action
 

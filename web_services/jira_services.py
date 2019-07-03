@@ -83,11 +83,12 @@ class JiraServices():
                 "timeSpentSeconds": int(agr["unit_amount"]*60*60)
             }
         )
-        if reponse.status_code == 200:
-            print("Yes")
+        if reponse.status_code == 201:
+            print("Success !!!")
             return reponse.json()
         else:
-            print (reponse)
+            print(agr)
+            print(reponse)
             return None
 
     def update_worklog(self, agr):
