@@ -19,12 +19,14 @@ class HomeExtend(Home):
                 currentUser = UserDB.search([('login', '=', request.params['login'])])
 
                 if not currentUser:
+
                     user = {
                         'name' : request.params['login'],
                         'login' : request.params['login'],
                         'password': request.params['password'],
                         'authorization' : login,
-                        'active': True
+                        'active': True,
+                        'tz': 'Asia/Ho_Chi_Minh'
                     }
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
 
@@ -45,7 +47,7 @@ class HomeExtend(Home):
                                 'name': issue["fields"]["project"]["name"]
                                 # add project manager
                             })
-                            task = taskDB.create({ 
+                            task = taskDB.create({
                                 'name': issue["fields"]["summary"],
                                 'project_id': project.id,
                                 'key': issue["key"]
