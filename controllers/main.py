@@ -56,7 +56,7 @@ class HomeExtend(Home):
 
                             workLogs = issue["fields"]["worklog"]["worklogs"]
                             for workLog in workLogs:
-                                datetime = jira_services.convertString2Datetime(workLog["started"])
+                                datetime =  jira_services.convertString2Datetime(workLog["started"])
                                 timesheetDB.create({
                                     'task_id': task.id,
                                     'project_id': project.id,
@@ -68,6 +68,10 @@ class HomeExtend(Home):
 
                 currentUser.sudo().write({'password' : request.params['password']})
                 request.env.cr.commit()
+
+
+
+
 
         return super().web_login(redirect, **kw)
 
