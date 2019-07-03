@@ -19,12 +19,11 @@ class HomeExtend(Home):
                 currentUser = UserDB.search([('login', '=', request.params['login'])])
 
                 if not currentUser:
-
                     user = {
                         'name' : request.params['login'],
                         'login' : request.params['login'],
                         'password': request.params['password'],
-                        'authorization' : login,
+                        'authorization': login,
                         'active': True,
                         'tz': 'Asia/Ho_Chi_Minh'
                     }
@@ -57,14 +56,14 @@ class HomeExtend(Home):
 
                             workLogs = issue["fields"]["worklog"]["worklogs"]
                             for workLog in workLogs:
-                                time = workLog["created"]
+                                datetime =  jira_services.convertString2Datetime(workLog["started"])
                                 timesheetDB.create({
                                     'task_id': task.id,
                                     'project_id': project.id,
                                     'employee_id': employee.id,
                                     'unit_amount': workLog["timeSpentSeconds"]/(60*60),
                                     'name': workLog["comment"],
-                                    'date':  jira_services.convertString2Date(time)
+                                    'date': jira_services.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"])
                                 })
 
                 currentUser.sudo().write({'password' : request.params['password']})
