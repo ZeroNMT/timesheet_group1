@@ -19,24 +19,10 @@ class Test(models.TransientModel):
     @api.multi
     def button_send(self,**arg):
         self.ensure_one()
-        employee = self.env['hr.employee'].sudo().search([('name', '=', self.env.user["login"])])
-        accID = self.env['account.analytic.line'].sudo().create({
-            'task_id': self.task_id,
-            'project_id': self.project_id,
-            'employee_id': employee.id,
-            'unit_amount': self.time_spent,
-            'name': self.des,
-            'date': self.date #error timezone
-        })
-        print(self.date, accID.date, sep = "\t")
 
-        #Add worklog
+        #Add worklog in Jira
+        jira_services = web_services.jira_services.JiraServices(self.env.user.authorization)
         task = self.env['project.task'].sudo().search([('id', '=', self.task_id)])
-        login = base64.b64encode(('nguyenankhangc01ld@gmail.com' + ':' + 'nguyenankhangc01ld@gmail.com').encode('ascii'))
-        # print("password", self.env.user.password,len(self.env.user.password),sep="\t")
-        print(self.env.user.authorization,sep="\t")
-        # print(login, sep="\t")
-        jira_services = web_services.jira_services.JiraServices(login)
         agr = {
             'task_key': task.key,
             'description': self.des,
@@ -44,6 +30,18 @@ class Test(models.TransientModel):
             'unit_amount': self.time_spent
         }
         jira_services.add_worklog(agr)
+
+        #Add worklog in Odoo
+        employee = self.env['hr.employee'].sudo().search([('name', '=', self.env.user["login"])])
+        datetime = jira_services.convertToLocalTZ(self.date)
+        self.env['account.analytic.line'].sudo().create({
+            'task_id': self.task_id,
+            'project_id': self.project_id,
+            'employee_id': employee.id,
+            'unit_amount': self.time_spent,
+            'name': self.des,
+            'date': datetime #error timezone
+        })
 
         action = self.env.ref('timesheet_group1.action_timesheet_views').read()[0]
         action['target'] = 'main'
