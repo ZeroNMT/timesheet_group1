@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api,fields, models
+from odoo import _,api,fields, models, exceptions
 from .. import services
 
 
@@ -35,6 +35,8 @@ class Test(models.TransientModel):
         #Add worklog in Odoo
         employee = self.env['hr.employee'].sudo().search([('name', '=', self.env.user["login"])])
         datetime = date_utils.convertToLocalTZ(self.date)
+        if(self.time_spent == 0.0):
+            raise exceptions.UserError(_("Please enter Unit amout > 0"))
         self.env['account.analytic.line'].sudo().create({
             'task_id': self.task_id,
             'project_id': self.project_id,
