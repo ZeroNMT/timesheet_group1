@@ -2,8 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api,fields, models
-import base64
-from .. import web_services
+from .. import services
 
 
 class Test(models.TransientModel):
@@ -21,19 +20,21 @@ class Test(models.TransientModel):
         self.ensure_one()
 
         #Add worklog in Jira
-        jira_services = web_services.jira_services.JiraServices(self.env.user.authorization)
+        jira_services = services.jira_services.JiraServices(self.env.user.authorization)
+        date_utils = services.date_utils.DateUtils()
+
         task = self.env['project.task'].sudo().search([('id', '=', self.task_id)])
         agr = {
             'task_key': task.key,
             'description': self.des,
-            'date': jira_services.convertDatetime2String(self.date),
+            'date': date_utils.convertDatetime2String(self.date),
             'unit_amount': self.time_spent
         }
         jira_services.add_worklog(agr)
 
         #Add worklog in Odoo
         employee = self.env['hr.employee'].sudo().search([('name', '=', self.env.user["login"])])
-        datetime = jira_services.convertToLocalTZ(self.date)
+        datetime = date_utils.convertToLocalTZ(self.date)
         self.env['account.analytic.line'].sudo().create({
             'task_id': self.task_id,
             'project_id': self.project_id,

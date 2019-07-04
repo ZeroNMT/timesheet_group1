@@ -11,7 +11,7 @@
         'views/assets.xml',
         'views/timesheet_views.xml',
         'views/timesheet_menu.xml',
-        'wizard/editTask.xml',
+        'wizard/edit_task.xml',
     ],
     'application': True,
 
