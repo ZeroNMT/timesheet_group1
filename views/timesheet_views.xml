@@ -14,7 +14,7 @@
         </field>
     </record>
 
-        <record id="timesheet_line_grid" model="ir.ui.view">
+    <record id="timesheet_line_grid" model="ir.ui.view">
         <field name="name">Timesheet Line Grid View</field>
         <field name="model">account.analytic.line</field>
         <field name="arch" type="xml">
@@ -29,5 +29,17 @@
             </grid>
         </field>
     </record>
-
+    <record id="view_search_timesheet" model="ir.ui.view">
+        <field name="name">Timesheet Filters</field>
+        <field name="model">account.analytic.line</field>
+        <field name="arch" type="xml">
+        <search>
+          <field name="employee_id"/>
+          <filter name="filter_my_timesheet"
+                  string="My Timesheet"
+                  domain="[('employee_id.user_id','=',uid)]"
+          />
+        </search>
+        </field>
+    </record>
 </odoo>

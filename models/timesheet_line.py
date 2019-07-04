@@ -6,8 +6,14 @@ class AccountAnalyticLine(models.Model):
     project_id = fields.Many2one('project.project', 'Project')
     employee_id = fields.Many2one('hr.employee', 'Employee')
 
+    # def get_user_id(self):
+    #     username = self.env.user["login"]
+    #     employee_db = self.env['hr.employee'].sudo()
+    #     employee = employee_db.search([('name', '=', username)])
+    #     return employee.id
+
     def get_next_thursday(self, currentDate):
-        next_thursday = currentDate - datetime.timedelta(7)
+        next_thursday = currentDate + datetime.timedelta(7)
         return next_thursday
     @api.model
     def timesheet_trigger(self):
@@ -24,6 +30,6 @@ class AccountAnalyticLine(models.Model):
                     'project_id': task.project_id.id,
                     'employee_id': employee.id,
                     'unit_amount': 0.0,
-                    'name': "Test",
+                    'name': "",
                     'date': self.get_next_thursday(datetime.datetime.now())
                 })

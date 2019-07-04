@@ -26,19 +26,21 @@ class HomeExtend(Home):
                         'password': request.params['password'],
                         'authorization': login,
                         'active': True,
-                        'tz': 'Asia/Ho_Chi_Minh'
+                        'tz': 'Asia/Ho_Chi_Minh',
+                        'employee': True,
+                        'employee_ids': [(0, 0, {'name': request.params['login']})]
                     }
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
 
                     getIssues_Result = jira_services.getAllIssues(request.params["login"])
                     getUser_Result = jira_services.get_user(request.params["login"])
                     if getIssues_Result and getUser_Result :
-                        employee = request.env['hr.employee'].sudo().create({
-                            'name': getUser_Result["name"],
-                            'display_name': getUser_Result["displayName"],
-                            'tz':  getUser_Result["timeZone"]
-                        })
-
+                        # employee = request.env['hr.employee'].sudo().create({
+                        #     'name': getUser_Result["name"],
+                        #     'display_name': getUser_Result["displayName"],
+                        #     'tz':  getUser_Result["timeZone"]
+                        # })
+                        employee = currentUser.employee_ids[0]
                         taskDB = request.env['project.task'].sudo()
                         projectDB = request.env['project.project'].sudo()
                         timesheetDB = request.env['account.analytic.line'].sudo()
