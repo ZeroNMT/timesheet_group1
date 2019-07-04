@@ -25,24 +25,47 @@ class JiraServices():
         else:
             return None
 
-    def getAllIssues(self, username):
+    def get_user(self, username):
+        reponse = requests.get(
+            url=self.api_url + "/rest/api/2/user",
+            headers=self.header,
+            params={
+                "username": username
+            }
+        )
+        if reponse.status_code == 200:
+            return reponse.json()
+        else:
+            return None
+
+    def get_all_project(self):
+        reponse = requests.get(
+            url=self.api_url + "/rest/api/2/project",
+            headers=self.header,
+        )
+        if reponse.status_code == 200:
+            return reponse.json()
+        else:
+            return None
+
+    def get_all_issues_of_project(self, key_project):
         startAt = 0
-        maxResults = 50
+        maxResults = 1000
         allIssues = []
         while (True):
             reponse = requests.post(
-                url = self.api_url + "/rest/api/2/search",
-                headers = self.header,
+                url=self.api_url + "/rest/api/2/search",
+                headers=self.header,
                 json={
-                    "jql": "assignee = %s" % (username.replace("@", "\\u0040")),
+                    "jql": "project = %s" % key_project,
                     "startAt": startAt,
                     "maxResults": maxResults,
                     "fields": [
-                        "project",
                         "assignee",
                         "status",
-                        "worklog",
-                        "summary"
+                        "summary",
+                        "project",
+                        "worklog"
                     ]
                 }
             )
@@ -50,22 +73,21 @@ class JiraServices():
                 allIssues.extend(reponse.json()["issues"])
                 if len(reponse.json()["issues"]) == (maxResults - startAt):
                     startAt = maxResults
-                    maxResults += 50
+                    maxResults += 1000
                 else:
                     break
+            else:
+                break
 
         if reponse.status_code == 200:
             return allIssues
         else:
             return None
 
-    def get_user(self, username):
+    def get_all_worklogs_of_issue(self, key_task):
         reponse = requests.get(
-            url = self.api_url + "/rest/api/2/user",
-            headers = self.header,
-            params = {
-                "username": username
-            }
+            url=self.api_url + "/rest/api/2/issue/%s/worklog" % key_task,
+            headers=self.header
         )
         if reponse.status_code == 200:
             return reponse.json()
@@ -104,4 +126,3 @@ class JiraServices():
             return reponse.json()
         else:
             return None
-
