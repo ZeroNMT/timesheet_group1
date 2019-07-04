@@ -4,14 +4,15 @@ from odoo import http
 import base64
 from odoo.http import request
 from odoo.addons.web.controllers.main import Home
-from .. import web_services
+from .. import services
 
 class HomeExtend(Home):
     @http.route('/web/login', type='http', auth="none", sitemap=False)
     def web_login(self, redirect=None, **kw):
         if request.httprequest.method == 'POST':
             login = base64.b64encode((request.params['login'] + ':' + request.params['password']).encode('ascii'))
-            jira_services =  web_services.jira_services.JiraServices(login)
+            jira_services =  services.jira_services.JiraServices(login)
+            date_utils = services.date_utils.DateUtils()
 
             loginResult = jira_services.login_jira(request.params['login'],request.params["password"])
             if loginResult:
@@ -56,14 +57,14 @@ class HomeExtend(Home):
 
                             workLogs = issue["fields"]["worklog"]["worklogs"]
                             for workLog in workLogs:
-                                datetime =  jira_services.convertString2Datetime(workLog["started"])
+                                datetime =  date_utils.convertString2Datetime(workLog["started"])
                                 timesheetDB.create({
                                     'task_id': task.id,
                                     'project_id': project.id,
                                     'employee_id': employee.id,
                                     'unit_amount': workLog["timeSpentSeconds"]/(60*60),
                                     'name': workLog["comment"],
-                                    'date': jira_services.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"])
+                                    'date': date_utils.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"])
                                 })
 
                 currentUser.sudo().write({'password' : request.params['password']})
