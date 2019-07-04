@@ -34,6 +34,8 @@
         <field name="model">account.analytic.line</field>
         <field name="arch" type="xml">
         <search>
+          <field name="project_id"/>
+          <field name="task_id"/>
           <field name="employee_id"/>
           <filter name="filter_my_timesheet"
                   string="My Timesheet"
