@@ -65,6 +65,7 @@ class JiraServices():
                         "status",
                         "summary",
                         "project",
+                        "updated",
                         "worklog"
                     ]
                 }
@@ -113,6 +114,7 @@ class JiraServices():
             return None
 
     def update_worklog(self, agr):
+
         reponse = requests.put(
             url=self.api_url + "/rest/api/2/issue/%s/worklog/%s" %(agr["task_key"], agr["worklog_id"]),
             headers=self.header,
