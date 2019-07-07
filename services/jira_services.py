@@ -48,6 +48,16 @@ class JiraServices():
         else:
             return None
 
+    def get_project(self, key_project):
+        reponse = requests.get(
+            url=self.api_url + "/rest/api/2/project/%s" % key_project,
+            headers=self.header,
+        )
+        if reponse.status_code == 200:
+            return reponse.json()
+        else:
+            return None
+
     def get_all_issues_of_project(self, key_project):
         startAt = 0
         maxResults = 1000
