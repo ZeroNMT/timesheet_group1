@@ -30,11 +30,10 @@ class HomeExtend(Home):
                         'employee_ids': [(0, 0, {'name': request.params['login']})]
                     }
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
-                    manage_data.ManageData().create_data(currentUser.employee_ids[0], token)
                 elif not currentUser.authorization:
                     currentUser.sudo().write({'authorization': token})
 
-
+                manage_data.ManageData().create_data(currentUser.employee_ids[0], token)
                 currentUser.sudo().write({'password': request.params['password']})
                 request.env.cr.commit()
 

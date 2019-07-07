@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <odoo>
     <menuitem id = "timesheet_menu"
-              name = "Timesheet Jira"
+              name = "Jira's Timesheet"
               web_icon="timesheet_group1,static/description/icon.png"
                 />
 
