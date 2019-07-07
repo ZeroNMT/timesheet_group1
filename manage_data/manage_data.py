@@ -68,20 +68,27 @@ class ManageData():
             return employee
 
     def create_workLog(self, employee_id, task_id, project_id, workLog_list):
+        worklogDB = request.env["account.analytic.line"].sudo().search([('task_id', '=', task_id.id)])
+        dic = {}
+        for worklog in worklogDB:
+            dic.update({int(worklog.id_jira): True})
+
         lst = []
         date_utils = services.date_utils.DateUtils()
         for workLog in workLog_list:
-            datetime = date_utils.convertString2Datetime(workLog["started"])
-            name = workLog["author"]["key"]
-            lst.append({
-                'name': workLog["comment"],
-                'task_id': task_id.id,
-                'project_id': project_id.id,
-                'employee_id': employee_id.id if name == employee_id.name else self.search_employee(name).id,
-                'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
-                'date': date_utils.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"]),
-                'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
-                'id_jira': workLog["id"]
-            })
+            if int(workLog["id"]) not in dic:
+                datetime = date_utils.convertString2Datetime(workLog["started"])
+                name = workLog["author"]["key"]
+                lst.append({
+                    'name': workLog["comment"],
+                    'task_id': task_id.id,
+                    'project_id': project_id.id,
+                    'employee_id': employee_id.id if name == employee_id.name else self.search_employee(name).id,
+                    'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
+                    'date': date_utils.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"]),
+                    'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
+                    'id_jira': workLog["id"]
+                })
+
         for item in lst:
             request.env["account.analytic.line"].sudo().create(item)

@@ -1,7 +1,8 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
+
 from odoo.tools import date_utils
 from odoo import fields
-import pytz #pip3 install pytz
+import pytz  # pip3 install pytz
 import datetime as DT
 
 class DateUtils():

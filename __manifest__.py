@@ -1,5 +1,5 @@
 {
-    'name': 'Timesheet Jira',
+    'name': "Jira's Timesheet",
     'depends': [
         'web_grid',
         'hr_timesheet'
