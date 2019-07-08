@@ -19,15 +19,12 @@ class AccountAnalyticLine(models.Model):
 
     @api.model
     def timesheet_trigger(self):
-        taskDB = self.env['project.task'].sudo()
-        task_records = taskDB.search([])
-        timesheetDB = self.env['account.analytic.line'].sudo()
+        task_records = self.env['project.task'].sudo().search([])
         username = self.env.user["login"]
-        employee_db = self.env['hr.employee'].sudo()
-        employee = employee_db.search([('name', '=', username)])
+        employee = self.env['hr.employee'].sudo().search([('name', '=', username)])
         for task in task_records:
             if(task.key):
-                timesheetDB.create({
+                self.env['account.analytic.line'].sudo().create({
                     'task_id': task.id,
                     'project_id': task.project_id.id,
                     'employee_id': employee.id,
