@@ -73,4 +73,16 @@
                 target: 'new'
             });
       }  
+* Hàm xử lý button Update là update_timesheet được thêm trong file wizard/update_task.py
+    ```python
+    class Update(models.TransientModel):
+    _name = 'update.task'
+    @api.multi
+    def update_timesheet(self,**arg):
+        print("Khangcero")
+        # Update from Jira to Odoo
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload'
+        }
     
