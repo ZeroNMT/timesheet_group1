@@ -35,3 +35,8 @@ class AccountAnalyticLine(models.Model):
                     'name': "",
                     'date': self.get_next_thursday(datetime.datetime.now())
                 })
+
+    @api.model
+    def update_timesheet_trigger(self):
+        print("Khangcero")
+        # Update from Jira to Odoo(Schedual: 2 hours)

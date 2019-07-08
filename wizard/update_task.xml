@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<odoo>
+
+  <record id="updateTask" model="ir.ui.view">
+    <field name="name">Update</field>
+    <field name="model">update.task</field>
+    <field name="arch" type="xml">
+      <form>
+        <footer>
+          <button type="object"
+            name="update_timesheet"
+            string="Yes"
+          />
+          <button special="cancel"
+            name="cancel"
+            string="No"
+            class="btn-secondary" />
+        </footer>
+      </form>
+    </field>
+  </record>
+
+</odoo>
