@@ -7,6 +7,22 @@ odoo.define('timesheet_group1.GridRender', function (require) {
         events: _.extend({}, GridController.prototype.events, {
         'click .o_grid_input': 'func',
         }),
+        renderButtons: function ($node) {
+            this._super.apply(this, arguments);
+            this.$buttons.on('click', '.o_grid_button_update', this._onUpdate.bind(this));
+        },
+        _onUpdate: function(){
+            this.do_action({
+                type: 'ir.actions.act_window',
+                name: "Are you sure?",
+                res_model: 'update.task',
+                views: [
+                    // [false, 'list'],
+                    [false, 'form']
+                ],
+                target: 'new'
+            });
+        },
         func: function(e){
             if(this.displayName === "Jira's Timesheet") {
                 var ctx = _.extend({}, this.context);

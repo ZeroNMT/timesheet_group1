@@ -9,8 +9,8 @@ class Test(models.TransientModel):
     _name = 'edit.task'
     date = fields.Datetime("Datetime")
     des = fields.Char("Description")
-    project_name = fields.Char()
-    task_name = fields.Char()
+    project_name = fields.Char(readonly=True)
+    task_name = fields.Char(readonly=True)
     time_spent = fields.Float("Unit amount")
     task_id = fields.Integer()
     project_id = fields.Integer()

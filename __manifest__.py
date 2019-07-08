@@ -12,7 +12,9 @@
         'views/timesheet_views.xml',
         'views/timesheet_menu.xml',
         'wizard/edit_task.xml',
+        'wizard/update_task.xml',
     ],
+    'qweb': ['static/src/xml/grid_view.xml'],
     'application': True,
 
 }
