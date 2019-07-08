@@ -11,11 +11,9 @@
           <field name="task_name" />
           <field name="project_id" invisible="True"/>
           <field name="task_id" invisible="True"/>
-          <field name="date" />
           <field name="des"/>
-
+          <field name="date" />
           <field name="time_spent" widget="float_time"/>
-
         </group>
         <footer>
           <button type="object"
