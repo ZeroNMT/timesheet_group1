@@ -2,7 +2,7 @@ from odoo.http import request
 from .. import services
 
 
-class ManageData():
+class CreateData():
 
     def create_data(self, employee_id, token):
         jira_service = services.jira_services.JiraServices(token)
