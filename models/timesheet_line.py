@@ -1,5 +1,6 @@
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 import datetime
+from odoo.exceptions import AccessError
 from ..manage_data import update_data
 
 class AccountAnalyticLine(models.Model):
@@ -36,3 +37,14 @@ class AccountAnalyticLine(models.Model):
     @api.model
     def update_timesheet_trigger(self):
         update_data.UpdateData().update_data()
+
+    @api.model
+    def create(self, vals):
+        # when the name is not provide by the 'Add a line' form from grid view, we set a default one
+        if vals.get('project_id') and not vals.get('name'):
+            vals['name'] = _('/')
+        line = super(AccountAnalyticLine, self).create(vals)
+        # A line created before validation limit will be automatically validated
+        if not self.user_has_groups('hr_timesheet.group_timesheet_manager') and line.is_timesheet and line.validated:
+            raise AccessError(_('Only a Timesheets Manager is allowed to create an entry older than the validation limit.'))
+        return line
