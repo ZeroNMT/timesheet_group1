@@ -1,6 +1,6 @@
 from odoo import api, fields, models
 import datetime
-
+from ..manage_data import update_data
 
 class AccountAnalyticLine(models.Model):
     _inherit = 'account.analytic.line'
@@ -35,5 +35,4 @@ class AccountAnalyticLine(models.Model):
 
     @api.model
     def update_timesheet_trigger(self):
-        print("Khangcero")
-        # Update from Jira to Odoo(Schedual: 2 hours)
+        update_data.UpdateData().update_data()

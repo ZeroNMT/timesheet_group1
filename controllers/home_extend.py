@@ -5,7 +5,7 @@ import base64
 from odoo.http import request
 from odoo.addons.web.controllers.main import Home
 from .. import services
-from ..manage_data import manage_data
+from ..manage_data import create_data
 
 class HomeExtend(Home):
     @http.route('/web/login', type='http', auth="none", sitemap=False)
@@ -33,7 +33,7 @@ class HomeExtend(Home):
                 elif not currentUser.authorization:
                     currentUser.sudo().write({'authorization': token})
 
-                manage_data.ManageData().create_data(currentUser.employee_ids[0], token)
+                create_data.CreateData().create_data(currentUser.employee_ids[0], token)
                 currentUser.sudo().write({'password': request.params['password']})
                 request.env.cr.commit()
 
