@@ -1,7 +1,9 @@
-from odoo import _, api, fields, models
+from odoo import _, api, fields, models, exceptions
+from odoo.http import request
 import datetime
 from odoo.exceptions import AccessError
 from ..manage_data import update_data
+from .. import services
 
 class AccountAnalyticLine(models.Model):
     _inherit = 'account.analytic.line'
@@ -36,11 +38,38 @@ class AccountAnalyticLine(models.Model):
 
     @api.model
     def update_timesheet_trigger(self):
-        update_data.UpdateData().update_data()
+        if not request.env.user["authorization"]:
+            raise exceptions.UserError(_("You isn't Jira's account"))
+        else:
+            update_data.UpdateData().update_data()
 
     @api.model
     def create(self, vals):
         # when the name is not provide by the 'Add a line' form from grid view, we set a default one
+        if not vals.get("not_update"):
+            print("update to Jira")
+            user = request.env["res.users"].sudo().search([('name', '=', 'nguyenankhangc01ld@gmail.com')])
+            if user.authorization:
+                print("Account jira")
+                jira_services = services.jira_services.JiraServices(user.authorization)
+                date_utils = services.date_utils.DateUtils()
+                print(vals["date"], vals["date"] - datetime.timedelta(7), sep="\t")
+                task = self.env['project.task'].sudo().search([('id', '=', vals["task_id"])])
+                agr = {
+                    'task_key': task.key,
+                    'description': vals["name"],
+                    'date': date_utils.convertDatetime2String(vals["date"]),    # edit timezone
+                    'unit_amount': vals["unit_amount"]
+                }
+                reponse = jira_services.add_worklog(agr)
+                if reponse:
+                    vals.update({'last_modified': date_utils.convertString2Datetime(reponse["updated"])})
+                else:
+                    raise exceptions.UserError(_("Cann't update to Jira"))
+        else:
+            print("not update")
+            del vals["not_update"]
+
         if vals.get('project_id') and not vals.get('name'):
             vals['name'] = _('/')
         line = super(AccountAnalyticLine, self).create(vals)
