@@ -8,21 +8,22 @@ class UpdateData():
     def update_data(self):
         if not request.env.user["authorization"]:
             raise exceptions.UserError(_("You isn't Jira's account"))
-        jira_service = services.jira_services.JiraServices(request.env.user["authorization"])
+        else:
+            jira_service = services.jira_services.JiraServices(request.env.user["authorization"])
 
-        project_list = jira_service.get_all_project()
-        if project_list:
-            for project in project_list:
-                lead_project = jira_service.get_project(project["key"])
-                if lead_project:
-                    project_id = self.update_project(project, lead_project["lead"])
-                    task_list = jira_service.get_all_issues_of_project(project["key"])
-                    if task_list:
-                        for task in task_list:
-                            task_id = self.update_task(project_id, task)
-                            workLog_list = jira_service.get_all_worklogs_of_issue(task["key"])
-                            if workLog_list:
-                                self.update_worklog(task_id, project_id, workLog_list["worklogs"])
+            project_list = jira_service.get_all_project()
+            if project_list:
+                for project in project_list:
+                    lead_project = jira_service.get_project(project["key"])
+                    if lead_project:
+                        project_id = self.update_project(project, lead_project["lead"])
+                        task_list = jira_service.get_all_issues_of_project(project["key"])
+                        if task_list:
+                            for task in task_list:
+                                task_id = self.update_task(project_id, task)
+                                workLog_list = jira_service.get_all_worklogs_of_issue(task["key"])
+                                if workLog_list:
+                                    self.update_worklog(task_id, project_id, workLog_list["worklogs"])
 
     def create_user(self, username):
         userDB = request.env["res.users"].sudo().search([('name', '=', username)])
@@ -89,7 +90,9 @@ class UpdateData():
                     'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
                     'date': date_utils.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"]),
                     'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
-                    'id_jira': workLog["id"]
+                    'id_jira': workLog["id"],
+                    "not_update": "Jira"
+
                 })
             else:
                 record = request.env["account.analytic.line"].sudo().browse(dic[int(workLog["id"])])
