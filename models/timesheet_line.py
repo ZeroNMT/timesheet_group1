@@ -5,6 +5,7 @@ from odoo.exceptions import AccessError
 from ..manage_data import update_data
 from .. import services
 
+
 class AccountAnalyticLine(models.Model):
     _inherit = 'account.analytic.line'
     _description = "Timesheet line"
@@ -72,4 +73,29 @@ class AccountAnalyticLine(models.Model):
         # A line created before validation limit will be automatically validated
         if not self.user_has_groups('hr_timesheet.group_timesheet_manager') and line.is_timesheet and line.validated:
             raise AccessError(_('Only a Timesheets Manager is allowed to create an entry older than the validation limit.'))
+        return line
+
+    @api.multi
+    def write(self, vals):
+        if not vals.get("amount") is None:
+            return super(AccountAnalyticLine, self).write(vals)
+
+        if not vals.get("not_update"):
+            user = request.env["res.users"].sudo().search([('name', '=', 'nguyenankhangc01ld@gmail.com')])  # hardcode
+            if user.authorization:
+                jira_services = services.jira_services.JiraServices(user.authorization)
+                date_utils = services.date_utils.DateUtils()
+                agrs = vals
+                agrs.update({
+                    "task_key": self.task_id.key,
+                    "worklog_id": self.id_jira
+                })
+                reponse = jira_services.update_worklog(agrs)
+                if reponse:
+                    vals.update({"last_modified": date_utils.convertString2Datetime(reponse["updated"])})
+                else:
+                    raise exceptions.UserError(_("Can't update to Jira"))
+        else:
+            del vals["not_update"]
+        line = super(AccountAnalyticLine, self).write(vals)
         return line

@@ -21,5 +21,6 @@
               name = "Timesheet"
               action = "action_timesheet_views"
               parent = "timesheet_menu"
+
             />
 </odoo>

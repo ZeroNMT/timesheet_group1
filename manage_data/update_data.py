@@ -103,7 +103,8 @@ class UpdateData():
                         'name': workLog["comment"],
                         'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
                         'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
-                        'date': date_utils.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"])
+                        'date': date_utils.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"]),
+                        "not_update": "Jira"
                     })
                     request.env.cr.commit()
                 del dic[int(workLog["id"])]
