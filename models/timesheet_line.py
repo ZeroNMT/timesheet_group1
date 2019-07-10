@@ -47,13 +47,10 @@ class AccountAnalyticLine(models.Model):
     def create(self, vals):
         # when the name is not provide by the 'Add a line' form from grid view, we set a default one
         if not vals.get("not_update"):
-            print("update to Jira")
             user = request.env["res.users"].sudo().search([('name', '=', 'nguyenankhangc01ld@gmail.com')])
             if user.authorization:
-                print("Account jira")
                 jira_services = services.jira_services.JiraServices(user.authorization)
                 date_utils = services.date_utils.DateUtils()
-                print(vals["date"], vals["date"] - datetime.timedelta(7), sep="\t")
                 task = self.env['project.task'].sudo().search([('id', '=', vals["task_id"])])
                 agr = {
                     'task_key': task.key,
@@ -67,7 +64,6 @@ class AccountAnalyticLine(models.Model):
                 else:
                     raise exceptions.UserError(_("Cann't update to Jira"))
         else:
-            print("not update")
             del vals["not_update"]
 
         if vals.get('project_id') and not vals.get('name'):
