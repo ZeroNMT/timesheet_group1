@@ -29,13 +29,14 @@
             </grid>
         </field>
     </record>
+
     <record id="view_search_timesheet" model="ir.ui.view">
         <field name="name">Timesheet Filters</field>
         <field name="model">account.analytic.line</field>
         <field name="arch" type="xml">
         <search>
-          <field name="project_id"/>
-          <field name="task_id"/>
+          <field name="project_id" string="Project Key" filter_domain="[('project_id.key', 'ilike', self)]"/>
+          <field name="task_id" string="Task Key" filter_domain="[('task_id.key', 'ilike', self)]"/>
           <field name="employee_id"/>
           <filter name="filter_my_timesheet"
                   string="My Timesheet"
