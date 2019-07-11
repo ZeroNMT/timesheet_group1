@@ -59,7 +59,8 @@ class CreateData():
                 'project_id':  project_id.id,
                 'status': task_info["fields"]["status"]["name"],
                 'last_modified': date_utils.convertString2Datetime(task_info["fields"]["updated"]),
-                'user_id': self.create_user(task_info["fields"]["assignee"]["name"]).id
+                'user_id': self.create_user(task_info["fields"]["assignee"]["name"]).id if task_info["fields"]["assignee"]
+                                                                                                        else ''
             })
         return task_id
 
