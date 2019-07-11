@@ -4,7 +4,7 @@ from .. import services
 
 class CreateData():
 
-    def create_data(self, employee_id, token):
+    def create_data(self, employee_id, token, username):
         jira_service = services.jira_services.JiraServices(token)
 
         project_list = jira_service.get_all_project()
@@ -12,7 +12,7 @@ class CreateData():
             for project in project_list:
                 lead_project = jira_service.get_project(project["key"])
                 if lead_project:
-                    project_id = self.create_project(project, lead_project["lead"])
+                    project_id = self.create_project(username, project, lead_project["lead"])
                     task_list = jira_service.get_all_issues_of_project(project["key"])
                     if task_list:
                         for task in task_list:
@@ -33,15 +33,19 @@ class CreateData():
             })
         return userDB
 
-    def create_project(self, project_info, lead_project):
+    def create_project(self, username, project_info, lead_project):
         project_id = request.env["project.project"].sudo().search([('key', '=',  project_info["key"])])
+        user = request.env["res.users"].sudo().search([('name', '=', username)])
         if not project_id:
-
             project_id = request.env["project.project"].sudo().create({
                 'name': project_info["name"],
                 'key': project_info["key"],
-                'user_id': self.create_user(lead_project["name"]).id
+                'user_id': self.create_user(lead_project["name"]).id,
+                'user_ids': [(4, user.id, 0)]
             })
+        else:
+            project_id.sudo().write({'user_ids': [(4, user.id, 0)]})
+            request.env.cr.commit()
         return project_id
 
     def create_task(self, project_id, task_info):

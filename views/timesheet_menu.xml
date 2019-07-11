@@ -12,9 +12,6 @@
         <field name="name">Jira's Timesheet</field>
         <field name="res_model">account.analytic.line</field>
         <field name="view_mode">grid,tree</field>
-<!--        <field name="domain">-->
-<!--            [('unit_amount', '>', 0)]-->
-<!--        </field>-->
         <field name="view_ids" eval="[(5, 0, 0),
             (0, 0, {'view_mode': 'grid', 'view_id' : ref('timesheet_line_grid')}),
             (0, 0, {'view_mode': 'tree', 'view_id' : ref('timesheet_line_tree')})]"/>
@@ -25,4 +22,24 @@
               action = "action_timesheet_views"
               parent = "timesheet_menu"
             />
+    <record model="ir.rule" id="project_rule">
+        <field name="name">Project Rule</field>
+        <field name="model_id" ref="timesheet_group1.model_project_project"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('user_ids','child_of',[user.id])]</field>
+    </record>
+
+    <record model="ir.rule" id="task_rule">
+        <field name="name">Task Rule</field>
+        <field name="model_id" ref="timesheet_group1.model_project_task"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('project_id.user_ids','child_of',[user.id])]</field>
+    </record>
+
+    <record model="ir.rule" id="worklog_rule">
+        <field name="name">Worklog Rule</field>
+        <field name="model_id" ref="timesheet_group1.model_account_analytic_line"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('project_id.user_ids','child_of',[user.id])]</field>
+    </record>
 </odoo>
