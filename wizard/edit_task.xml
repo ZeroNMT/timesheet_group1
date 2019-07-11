@@ -9,6 +9,7 @@
         <group>
           <field name="project_name" />
           <field name="task_name" />
+          <field name="time_zone"/>
           <field name="project_id" invisible="True"/>
           <field name="task_id" invisible="True"/>
           <field name="des"/>

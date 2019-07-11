@@ -12,6 +12,9 @@
         <field name="name">Jira's Timesheet</field>
         <field name="res_model">account.analytic.line</field>
         <field name="view_mode">grid,tree</field>
+<!--        <field name="domain">-->
+<!--            [('unit_amount', '>', 0)]-->
+<!--        </field>-->
         <field name="view_ids" eval="[(5, 0, 0),
             (0, 0, {'view_mode': 'grid', 'view_id' : ref('timesheet_line_grid')}),
             (0, 0, {'view_mode': 'tree', 'view_id' : ref('timesheet_line_tree')})]"/>
@@ -21,6 +24,5 @@
               name = "Timesheet"
               action = "action_timesheet_views"
               parent = "timesheet_menu"
-
             />
 </odoo>
