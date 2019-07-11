@@ -5,7 +5,7 @@ from .. import services
 
 class UpdateData():
 
-    def update_data(self):
+    def update_data(self, username):
         if not request.env.user["authorization"]:
             raise exceptions.UserError(_("You isn't Jira's account"))
         else:
@@ -16,7 +16,7 @@ class UpdateData():
                 for project in project_list:
                     lead_project = jira_service.get_project(project["key"])
                     if lead_project:
-                        project_id = self.update_project(project, lead_project["lead"])
+                        project_id = self.update_project(username, project, lead_project["lead"])
                         task_list = jira_service.get_all_issues_of_project(project["key"])
                         if task_list:
                             for task in task_list:
@@ -37,15 +37,19 @@ class UpdateData():
             })
         return userDB
 
-    def update_project(self, project_info, lead_project):
+    def update_project(self, username, project_info, lead_project):
         project_id = request.env["project.project"].sudo().search([('key', '=',  project_info["key"])])
-        if not project_id:
+        user = request.env["res.users"].sudo().search([('name', '=', username)])
 
+        if not project_id:
             project_id = request.env["project.project"].sudo().create({
                 'name': project_info["name"],
                 'key': project_info["key"],
-                'user_id': self.create_user(lead_project["name"]).id
+                'user_id': self.create_user(lead_project["name"]).id,
+                'user_ids': [(4, user.id, 0)]
             })
+
+            request.env.cr.commit()
         return project_id
 
     def update_task(self, project_id, task_info):

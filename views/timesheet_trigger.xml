@@ -9,6 +9,7 @@
         <field name='interval_type'>weeks</field>
         <field name="numbercall">-1</field>
     </record>
+
     <record id="Update_timesheet_trigger" model="ir.cron">
         <field name="name">Update Timesheet Trigger</field>
         <field name="model_id" ref="model_account_analytic_line"/>
