@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import requests
-
+import json
 
 class JiraServices():
 
     def __init__(self, login):
-        self.api_url = 'https://jira.novobi.com'
+        self.api_url = "https://jira.novobi.com"
         self.header = {
-            'Content-Type': 'application/json',
-            'Authorization': 'Basic' + ' ' + str(login.decode("utf-8"))
+            "Content-Type": "application/json",
+            "Authorization": "Basic" + " " + str(login.decode("utf-8"))
         }
 
     def login_jira(self, username, password):
@@ -119,22 +119,25 @@ class JiraServices():
             print("Success !!!")
             return reponse.json()
         else:
-            print(agr)
             print(reponse)
             return None
 
     def update_worklog(self, agr):
+        data = {}
+        if agr.get("name"):
+            data.update({"comment": agr["name"]})
+        if agr.get("date"):
+            data.update({"started": agr["date"]})
+        if agr.get("unit_amount"):
+            data.update({"timeSpentSeconds": int(agr["unit_amount"]*60*60)})
 
         reponse = requests.put(
-            url=self.api_url + "/rest/api/2/issue/%s/worklog/%s" %(agr["task_key"], agr["worklog_id"]),
+            url=self.api_url + "/rest/api/2/issue/%s/worklog/%s" % (agr["task_key"], agr["worklog_id"]),
             headers=self.header,
-            data={
-                "comment": agr["description"],
-                "started": agr["date"],
-                "timeSpentSeconds": int(agr["unit_amount"]*60*60)
-            }
+            data=json.dumps(data)
         )
         if reponse.status_code == 200:
             return reponse.json()
         else:
+            print(reponse, reponse.json(), sep="\n")
             return None

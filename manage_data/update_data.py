@@ -91,8 +91,7 @@ class UpdateData():
                     'date': date_utils.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"]),
                     'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
                     'id_jira': workLog["id"],
-                    "not_update": "Jira"
-
+                    'not_update_jira': 'True'
                 })
             else:
                 record = request.env["account.analytic.line"].sudo().browse(dic[int(workLog["id"])])
@@ -103,7 +102,9 @@ class UpdateData():
                         'name': workLog["comment"],
                         'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
                         'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
-                        'date': date_utils.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"])
+                        'date': date_utils.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"]),
+                        'not_update_jira': 'True'
+
                     })
                     request.env.cr.commit()
                 del dic[int(workLog["id"])]
