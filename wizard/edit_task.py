@@ -15,10 +15,14 @@ class Test(models.TransientModel):
     time_spent = fields.Float("Unit amount")
     task_id = fields.Integer()
     project_id = fields.Integer()
-    time_zone = fields.Selection(
-        [(x,x) for x in pytz.all_timezones],
-        default='Asia/Ho_Chi_Minh'
-    )
+    time_zone = fields.Selection(selection=lambda self: self._compute_timezone(), string="Timezone",
+                                    default=0)
+
+    def _compute_timezone(self):
+        lst = [(x,x) for x in pytz.all_timezones]
+        tz = self.env.user.tz
+        lst.append((0,tz))
+        return lst
 
     @api.multi
     def button_send(self,**arg):
