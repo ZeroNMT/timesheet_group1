@@ -42,6 +42,10 @@
                   string="My Timesheet"
                   domain="[('employee_id.user_id','=',uid)]"
           />
+          <filter name="filter_unit_amount"
+                  string="Unit Amount"
+                  domain="[('unit_amount','>',0)]"
+          />
         </search>
         </field>
     </record>

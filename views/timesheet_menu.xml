@@ -21,7 +21,6 @@
               name = "Timesheet"
               action = "action_timesheet_views"
               parent = "timesheet_menu"
-
             />
     <record model="ir.rule" id="project_rule">
         <field name="name">Project Rule</field>

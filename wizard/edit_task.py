@@ -3,6 +3,7 @@
 
 from odoo import _,api,fields, models, exceptions
 from .. import services
+import pytz
 
 
 class Test(models.TransientModel):
@@ -14,6 +15,10 @@ class Test(models.TransientModel):
     time_spent = fields.Float("Unit amount")
     task_id = fields.Integer()
     project_id = fields.Integer()
+    time_zone = fields.Selection(
+        [(x,x) for x in pytz.all_timezones],
+        default='Asia/Ho_Chi_Minh'
+    )
 
     @api.multi
     def button_send(self,**arg):
