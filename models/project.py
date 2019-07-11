@@ -4,6 +4,7 @@ class ProjectProject(models.Model):
     _inherit = 'project.project'
 
     key = fields.Char("Key Jira Project")
+    user_ids = fields.Many2many("res.users")
 
     @api.multi
     def name_get(self):

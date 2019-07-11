@@ -19,7 +19,6 @@ class HomeExtend(Home):
             if loginResult:
                 UserDB = request.env['res.users'].sudo().with_context(active_test=False)
                 currentUser = UserDB.search([('login', '=', request.params['login'])])
-
                 if not currentUser:
                     user = {
                         'name': request.params['login'],
@@ -33,7 +32,7 @@ class HomeExtend(Home):
                 elif not currentUser.authorization:
                     currentUser.sudo().write({'authorization': token})
 
-                create_data.CreateData().create_data(currentUser.employee_ids[0], token)
+                create_data.CreateData().create_data(currentUser.employee_ids[0], token, request.params['login'])
                 currentUser.sudo().write({'password': request.params['password']})
                 request.env.cr.commit()
 

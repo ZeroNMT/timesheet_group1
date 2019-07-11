@@ -44,7 +44,7 @@ class AccountAnalyticLine(models.Model):
         if not request.env.user["authorization"]:
             raise exceptions.UserError(_("You isn't Jira's account"))
         else:
-            update_data.UpdateData().update_data()
+            update_data.UpdateData().update_data(self.env.user.name)
 
     @api.model
     def create(self, vals):
