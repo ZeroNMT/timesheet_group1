@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import requests
-
+import json
 
 class JiraServices():
 
@@ -132,9 +132,9 @@ class JiraServices():
             data.update({"timeSpentSeconds": int(agr["unit_amount"]*60*60)})
 
         reponse = requests.put(
-            url=self.api_url + "/rest/api/2/issue/TIME-4/worklog/47223",
+            url=self.api_url + "/rest/api/2/issue/%s/worklog/%s" % (agr["task_key"], agr["worklog_id"]),
             headers=self.header,
-            data=data
+            data=json.dumps(data)
         )
         if reponse.status_code == 200:
             return reponse.json()

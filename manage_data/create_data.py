@@ -88,7 +88,7 @@ class CreateData():
                     'date': date_utils.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"]),
                     'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
                     'id_jira': workLog["id"],
-                    "not_update": "Jira"
+                    'not_update_jira': 'True'
                 })
 
         for item in lst:

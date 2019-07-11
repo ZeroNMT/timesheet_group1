@@ -25,7 +25,7 @@ class Test(models.TransientModel):
         datetime = date_utils.convertToLocalTZ(self.date) # ERROR: cann't get local timezone
         if(self.time_spent == 0.0):
             raise exceptions.UserError(_("Please enter Unit amout > 0"))
-        self.env['account.analytic.line'].sudo().create({
+        self.env['account.analytic.line'].create({
             'task_id': self.task_id,
             'project_id': self.project_id,
             'employee_id': employee.id,

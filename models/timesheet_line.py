@@ -16,6 +16,7 @@ class AccountAnalyticLine(models.Model):
     employee_id = fields.Many2one('hr.employee', 'Employee')
     last_modified = fields.Datetime("Last Modified Jira")
     id_jira = fields.Char('ID in JIRA')
+    not_update_jira = fields.Char()
 
     def get_next_thursday(self, currentDate):
         next_thursday = currentDate + datetime.timedelta(7)
@@ -34,7 +35,8 @@ class AccountAnalyticLine(models.Model):
                     'employee_id': employee.id,
                     'unit_amount': 0.0,
                     'name': "",
-                    'date': self.get_next_thursday(datetime.datetime.now())
+                    'date': self.get_next_thursday(datetime.datetime.now()),
+                    'not_update_jira': 'True'
                 })
 
     @api.model
@@ -47,10 +49,9 @@ class AccountAnalyticLine(models.Model):
     @api.model
     def create(self, vals):
         # when the name is not provide by the 'Add a line' form from grid view, we set a default one
-        if not vals.get("not_update"):
-            user = request.env["res.users"].sudo().search([('name', '=', 'nguyenankhangc01ld@gmail.com')])
-            if user.authorization:
-                jira_services = services.jira_services.JiraServices(user.authorization)
+        if not vals.get("not_update_jira"):
+            if self.env.user.authorization:
+                jira_services = services.jira_services.JiraServices(self.env.user.authorization)
                 date_utils = services.date_utils.DateUtils()
                 task = self.env['project.task'].sudo().search([('id', '=', vals["task_id"])])
                 agr = {
@@ -64,8 +65,8 @@ class AccountAnalyticLine(models.Model):
                     vals.update({'last_modified': date_utils.convertString2Datetime(reponse["updated"])})
                 else:
                     raise exceptions.UserError(_("Cann't update to Jira"))
-        else:
-            del vals["not_update"]
+            else:
+                raise exceptions.UserError(_("You isn't Jira's account"))
 
         if vals.get('project_id') and not vals.get('name'):
             vals['name'] = _('/')
@@ -80,10 +81,9 @@ class AccountAnalyticLine(models.Model):
         if not vals.get("amount") is None:
             return super(AccountAnalyticLine, self).write(vals)
 
-        if not vals.get("not_update"):
-            user = request.env["res.users"].sudo().search([('name', '=', 'nguyenankhangc01ld@gmail.com')])  # hardcode
-            if user.authorization:
-                jira_services = services.jira_services.JiraServices(user.authorization)
+        if not vals.get("not_update_jira"):
+            if self.env.user.authorization:
+                jira_services = services.jira_services.JiraServices(self.env.user.authorization)
                 date_utils = services.date_utils.DateUtils()
                 agrs = vals
                 agrs.update({
@@ -95,7 +95,8 @@ class AccountAnalyticLine(models.Model):
                     vals.update({"last_modified": date_utils.convertString2Datetime(reponse["updated"])})
                 else:
                     raise exceptions.UserError(_("Can't update to Jira"))
-        else:
-            del vals["not_update"]
+            else:
+                raise exceptions.UserError(_("You isn't Jira's account"))
+
         line = super(AccountAnalyticLine, self).write(vals)
         return line
