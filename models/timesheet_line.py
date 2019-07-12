@@ -4,6 +4,7 @@ import datetime
 from odoo.exceptions import AccessError
 from ..manage_data import update_data
 from .. import services
+from odoo.addons.queue_job.job import job
 
 
 class AccountAnalyticLine(models.Model):
@@ -100,3 +101,12 @@ class AccountAnalyticLine(models.Model):
 
         line = super(AccountAnalyticLine, self).write(vals)
         return line
+
+    @api.multi
+    @job
+    def create_workLog(self,lst):
+        for item in lst:
+            self.create(item)
+
+
+
