@@ -100,5 +100,3 @@ class CreateData():
         lst_t2 = lst[int(len(lst)/2):len(lst)]
         request.env["account.analytic.line"].sudo().create_workLog(lst_t1)
         request.env["account.analytic.line"].sudo().create_workLog(lst_t2)
-        # for item in lst:
-        #     request.env["account.analytic.line"].sudo().create(item)
