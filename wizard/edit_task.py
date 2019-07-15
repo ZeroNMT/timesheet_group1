@@ -5,7 +5,6 @@ from odoo import _,api,fields, models, exceptions
 from .. import services
 import pytz
 
-
 class Test(models.TransientModel):
     _name = 'edit.task'
     date = fields.Datetime("Datetime")
@@ -19,9 +18,8 @@ class Test(models.TransientModel):
                                     default=0)
 
     def _compute_timezone(self):
-        lst = [(x,x) for x in pytz.all_timezones]
-        tz = self.env.user.tz
-        lst.append((0,tz))
+        lst = [(x, x) for x in pytz.all_timezones]
+        lst.append((0, self.env.user.tz))
         return lst
 
     @api.multi
@@ -31,7 +29,7 @@ class Test(models.TransientModel):
         #Add worklog in Odoo
         date_utils = services.date_utils.DateUtils()
         employee = self.env['hr.employee'].sudo().search([('name', '=', self.env.user["login"])])
-        datetime = date_utils.convertToLocalTZ(self.date) # ERROR: cann't get local timezone
+        datetime = date_utils.convertToLocalTZ(self.date, self.env.user.tz).replace(tzinfo=pytz.timezone(self.time_zone))
         if(self.time_spent == 0.0):
             raise exceptions.UserError(_("Please enter Unit amout > 0"))
         self.env['account.analytic.line'].create({
@@ -45,6 +43,6 @@ class Test(models.TransientModel):
 
         action = self.env.ref('timesheet_group1.action_timesheet_views').read()[0]
         action['target'] = 'main'
-        action['context'] = {'grid_anchor': fields.Date.to_string(self.date)}
+        action['context'] = {'grid_anconvertDatetime2Stringchor': fields.Date.to_string(self.date)}
         return action
 

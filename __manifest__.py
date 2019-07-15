@@ -2,7 +2,8 @@
     'name': "Jira's Timesheet",
     'depends': [
         'web_grid',
-        'hr_timesheet'
+        'hr_timesheet',
+        'queue_job'
     ],
     'author': 'Group1',
     'data': [
