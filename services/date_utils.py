@@ -18,6 +18,7 @@ class  DateUtils():
         return dateTime
 
     def convertDatetime2String(self, datetime):
+        datetime = datetime.astimezone(pytz.utc)
         strDatetime = fields.Datetime.to_string(datetime).replace(" ", "T") + ".000" + "+0000"
         return strDatetime
 
