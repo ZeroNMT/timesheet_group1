@@ -50,7 +50,7 @@ class AccountAnalyticLine(models.Model):
     @api.model
     def create(self, vals):
         # when the name is not provide by the 'Add a line' form from grid view, we set a default one
-        if not vals.get("not_update_jira"):
+        if not vals.get("not_update_jira") and vals.get("unit_amount"):
             if self.env.user.authorization:
                 jira_services = services.jira_services.JiraServices(self.env.user.authorization)
                 date_utils = services.date_utils.DateUtils()
@@ -71,6 +71,7 @@ class AccountAnalyticLine(models.Model):
 
         if vals.get('project_id') and not vals.get('name'):
             vals['name'] = _('/')
+
         line = super(AccountAnalyticLine, self).create(vals)
         # A line created before validation limit will be automatically validated
         if not self.user_has_groups('hr_timesheet.group_timesheet_manager') and line.is_timesheet and line.validated:
@@ -108,5 +109,12 @@ class AccountAnalyticLine(models.Model):
         for item in lst:
             self.create(item)
 
+    @api.multi
+    def add_timesheet(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload'
+        }
 
 

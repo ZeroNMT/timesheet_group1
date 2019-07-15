@@ -24,9 +24,7 @@ class Test(models.TransientModel):
         lst.append((0,tz))
         return lst
 
-    @api.multi
-    def button_send(self,**arg):
-        self.ensure_one()
+
 
         #Add worklog in Odoo
         date_utils = services.date_utils.DateUtils()
