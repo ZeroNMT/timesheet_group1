@@ -9,7 +9,19 @@ odoo.define('timesheet_group1.GridRender', function (require) {
         }),
         renderButtons: function ($node) {
             this._super.apply(this, arguments);
+            this.$buttons.on('click', '.o_grid_button_add_timesheet', this._onAdd.bind(this));
             this.$buttons.on('click', '.o_grid_button_update', this._onUpdate.bind(this));
+        },
+        _onAdd: function() {
+            this.do_action({
+                type: 'ir.actions.act_window',
+                name: "Add TimeSheet",
+                res_model: 'account.analytic.line',
+                views: [
+                    [false, 'form']
+                ],
+                target: 'new'
+            });
         },
         _onUpdate: function(){
             this.do_action({
@@ -17,7 +29,6 @@ odoo.define('timesheet_group1.GridRender', function (require) {
                 name: "Are you sure?",
                 res_model: 'update.task',
                 views: [
-                    // [false, 'list'],
                     [false, 'form']
                 ],
                 target: 'new'

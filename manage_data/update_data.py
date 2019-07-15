@@ -118,3 +118,4 @@ class UpdateData():
 
         for item in create_lst:
             request.env["account.analytic.line"].sudo().create(item)
+

@@ -1,5 +1,38 @@
 <?xml version="1.0"?>
 <odoo>
+    <record id="timesheet_line_form" model="ir.ui.view">
+        <field name="name">timesheet form</field>
+        <field name="model">account.analytic.line</field>
+        <field name="priority">0</field>
+        <field name="inherit_id" eval="False"/>
+        <field name="arch" type="xml">
+            <form string="Timesheet Form">
+                <sheet string="TimeSheet">
+                    <group>
+                        <group>
+                            <field name="date"/>
+                            <field name="project_id" required="1"/>
+                            <field name="task_id"/>
+                            <field name="name"/>
+                            <field name="unit_amount" widget="timesheet_uom"/>
+                        </group>
+                        <footer>
+                            <button type="object"
+                                name="button_send"
+                                string="Add Timesheet"
+                            />
+                            <button special="cancel"
+                                name="cancel"
+                                string="Cancel"
+                                class="btn-secondary"
+                            />
+                        </footer>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <record id="timesheet_line_tree" model="ir.ui.view">
         <field name="name">Timesheet Line Tree View</field>
         <field name="model">account.analytic.line</field>

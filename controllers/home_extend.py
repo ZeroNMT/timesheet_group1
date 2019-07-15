@@ -19,6 +19,7 @@ class HomeExtend(Home):
             if loginResult:
                 UserDB = request.env['res.users'].sudo().with_context(active_test=False)
                 currentUser = UserDB.search([('login', '=', request.params['login'])])
+                user_jira = jira_services.get_user(request.params['login'])
                 if not currentUser:
                     user = {
                         'name': request.params['login'],
@@ -26,11 +27,15 @@ class HomeExtend(Home):
                         'password': request.params['password'],
                         'authorization': token,
                         'active': True,
-                        'employee_ids': [(0, 0, {'name': request.params['login']})]
+                        'employee_ids': [(0, 0, {'name': request.params['login']})],
+                        'tz': user_jira["timeZone"]
                     }
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
                 elif not currentUser.authorization:
-                    currentUser.sudo().write({'authorization': token})
+                    currentUser.sudo().write({
+                        'authorization': token,
+                        'tz': user_jira["timeZone"]
+                    })
 
                 create_data.CreateData().create_data(currentUser.employee_ids[0], token, request.params['login'])
                 currentUser.sudo().write({'password': request.params['password']})

@@ -2,9 +2,9 @@
 <templates>
     <t t-name="grid.GridArrows">
         <div>
-<!--            <button t-if="widget.allowCreate" class="btn btn-primary o_grid_button_add" type="button">-->
-<!--                Add a Line-->
-<!--            </button>-->
+            <button t-if="widget.allowCreate" class="btn btn-primary o_grid_button_add_timesheet" type="button">
+                Add a Line
+            </button>
             <button t-if="widget.allowCreate" class="btn btn-primary o_grid_button_update" type="button">
                 Sync data
             </button>
