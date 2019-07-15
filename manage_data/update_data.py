@@ -40,7 +40,6 @@ class UpdateData():
     def update_project(self, username, project_info, lead_project):
         project_id = request.env["project.project"].sudo().search([('key', '=',  project_info["key"])])
         user = request.env["res.users"].sudo().search([('name', '=', username)])
-
         if not project_id:
             project_id = request.env["project.project"].sudo().create({
                 'name': project_info["name"],
@@ -48,7 +47,8 @@ class UpdateData():
                 'user_id': self.create_user(lead_project["name"]).id,
                 'user_ids': [(4, user.id, 0)]
             })
-
+        else:
+            project_id.sudo().write({'user_ids': [(4, user.id, 0)]})
             request.env.cr.commit()
         return project_id
 
@@ -85,6 +85,7 @@ class UpdateData():
         create_lst = []
         date_utils = services.date_utils.DateUtils()
         for workLog in workLog_list:
+            datetime = date_utils.convertString2Datetime(workLog["started"])
             if int(workLog["id"]) not in dic:
                 create_lst.append({
                     'name': workLog["comment"],
@@ -100,7 +101,6 @@ class UpdateData():
             else:
                 record = request.env["account.analytic.line"].sudo().browse(dic[int(workLog["id"])])
                 update_worklog = date_utils.convertString2Datetime(workLog["updated"])
-                datetime = date_utils.convertString2Datetime(workLog["started"])
                 if update_worklog != record.last_modified:
                     record.sudo().write({
                         'name': workLog["comment"],
