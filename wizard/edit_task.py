@@ -22,8 +22,9 @@ class Test(models.TransientModel):
         lst.append((0, self.env.user.tz))
         return lst
 
-
-
+    @api.multi
+    def button_send(self,**arg):
+        self.ensure_one()
         #Add worklog in Odoo
         date_utils = services.date_utils.DateUtils()
         employee = self.env['hr.employee'].sudo().search([('name', '=', self.env.user["login"])])
