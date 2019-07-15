@@ -95,8 +95,9 @@ class CreateData():
                     'id_jira': workLog["id"],
                     'not_update_jira': 'True'
                 })
-
-        lst_t1 = lst[0:int(len(lst)/2)]
-        lst_t2 = lst[int(len(lst)/2):len(lst)]
-        request.env["account.analytic.line"].sudo().with_delay().create_workLog(lst_t1)
-        request.env["account.analytic.line"].sudo().with_delay().create_workLog(lst_t2)
+        for item in lst:
+            request.env["account.analytic.line"].sudo().create(item)
+        # lst_t1 = lst[0:int(len(lst)/2)]
+        # lst_t2 = lst[int(len(lst)/2):len(lst)]
+        # request.env["account.analytic.line"].sudo().with_delay().create_workLog(lst_t1)
+        # request.env["account.analytic.line"].sudo().with_delay().create_workLog(lst_t2)
