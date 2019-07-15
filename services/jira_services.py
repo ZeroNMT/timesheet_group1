@@ -130,7 +130,6 @@ class JiraServices():
             data.update({"started": agr["date"]})
         if agr.get("unit_amount"):
             data.update({"timeSpentSeconds": int(agr["unit_amount"]*60*60)})
-
         reponse = requests.put(
             url=self.api_url + "/rest/api/2/issue/%s/worklog/%s" % (agr["task_key"], agr["worklog_id"]),
             headers=self.header,

@@ -5,7 +5,7 @@ from odoo import fields
 import pytz  # pip3 install pytz
 import datetime as DT
 
-class DateUtils():
+class  DateUtils():
 
     def convertString2Datetime(self, strFull):
         strDateTime = strFull[:strFull.find(".")].replace("T", " ")
