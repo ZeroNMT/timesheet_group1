@@ -15,7 +15,7 @@ odoo.define('timesheet_group1.GridRender', function (require) {
         _onAdd: function() {
             this.do_action({
                 type: 'ir.actions.act_window',
-                name: "Add TimeSheet",
+                name: "Add TimeSheet Line",
                 res_model: 'account.analytic.line',
                 views: [
                     [false, 'form']

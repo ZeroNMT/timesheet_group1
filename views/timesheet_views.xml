@@ -17,7 +17,7 @@
                         <footer>
                             <button type="object"
                                 name="add_timesheet"
-                                string="Add Timesheet"
+                                string="Add Timesheet Line"
                             />
                             <button special="cancel"
                                 name="cancel"
@@ -67,17 +67,18 @@
         <field name="model">account.analytic.line</field>
         <field name="arch" type="xml">
         <search>
-          <field name="project_id" string="Project Key" filter_domain="[('project_id.key', 'ilike', self)]"/>
-          <field name="task_id" string="Task Key" filter_domain="[('task_id.key', 'ilike', self)]"/>
-          <field name="employee_id"/>
-          <filter name="filter_my_timesheet"
-                  string="My Timesheet"
-                  domain="[('employee_id.user_id','=',uid)]"
-          />
-          <filter name="filter_unit_amount"
-                  string="Unit Amount"
-                  domain="[('unit_amount','>',0)]"
-          />
+            <field name="project_id" string="Project Key" filter_domain="[('project_id.key', 'ilike', self)]"/>
+            <field name="task_id" string="Task Key" filter_domain="[('task_id.key', 'ilike', self)]"/>
+            <field name="employee_id"/>
+            <filter name="filter_my_timesheet"
+            string="My Timesheet"
+            domain="[('employee_id.user_id','=',uid)]"
+            />
+            <filter name="filter_unit_amount"
+            string="Unit Amount"
+            domain="[('unit_amount','>',0)]"
+            />
+
         </search>
         </field>
     </record>
