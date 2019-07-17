@@ -4,7 +4,17 @@
               name = "Jira's Timesheet"
               web_icon="timesheet_group1,static/description/icon.png"
                 />
+    <menuitem id = "menu_timesheet_views"
+              name = "Timesheet"
+              action = "action_timesheet_views"
+              parent = "timesheet_group1.timesheet_menu"
+            />
 
+    <menuitem id = 'timesheet_report_view'
+              name = "Reporting"
+              action = 'action_timesheet_report'
+              parent = 'timesheet_group1.timesheet_menu'
+            />
 
     <record
         model="ir.actions.act_window"
@@ -19,11 +29,17 @@
         <field name="context">{"search_default_filter_my_timesheet": 1}</field>
     </record>
 
-    <menuitem id = "menu_timesheet_views"
-              name = "Timesheet"
-              action = "action_timesheet_views"
-              parent = "timesheet_menu"
-            />
+    <record
+        model="ir.actions.client"
+        id="action_timesheet_report">
+        <field name="name">Timesheet Report</field>
+        <field name="tag">account_report</field>
+        <field name="context" eval="{'model': 'timesheet.report'}"/>
+    </record>
+
+
+
+
     <record model="ir.rule" id="project_rule">
         <field name="name">Project Rule</field>
         <field name="model_id" ref="timesheet_group1.model_project_project"/>

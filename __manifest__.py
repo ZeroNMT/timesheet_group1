@@ -3,7 +3,8 @@
     'depends': [
         'web_grid',
         'hr_timesheet',
-        'queue_job'
+        'queue_job',
+        'account_reports'
     ],
     'author': 'Group1',
     'data': [
