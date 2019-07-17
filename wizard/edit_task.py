@@ -15,11 +15,11 @@ class Test(models.TransientModel):
     task_id = fields.Integer()
     project_id = fields.Integer()
     time_zone = fields.Selection(selection=lambda self: self._compute_timezone(), string="Timezone",
-                                    default=0)
+                                    default=0,readonly=True)
 
     def _compute_timezone(self):
-        lst = [(x, x) for x in pytz.all_timezones]
-        lst.append((0, self.env.user.tz))
+        # lst = [(x, x) for x in pytz.all_timezones]
+        lst = [(0, self.env.user.tz)]
         return lst
 
     @api.multi

@@ -78,8 +78,17 @@
             string="Unit Amount"
             domain="[('unit_amount','>',0)]"
             />
-
         </search>
+        </field>
+    </record>
+
+    <record id="view_graph_timesheet" model="ir.ui.view">
+        <field name="model">account.analytic.line</field>
+        <field name="arch" type="xml">
+        <graph type="bar">
+            <field name="employee_id" />
+            <field name="unit_amount" type="measure" />
+        </graph>
         </field>
     </record>
 </odoo>
