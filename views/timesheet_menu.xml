@@ -4,17 +4,7 @@
               name = "Jira's Timesheet"
               web_icon="timesheet_group1,static/description/icon.png"
                 />
-    <menuitem id = "menu_timesheet_views"
-              name = "Timesheet"
-              action = "action_timesheet_views"
-              parent = "timesheet_group1.timesheet_menu"
-            />
 
-    <menuitem id = 'timesheet_report_view'
-              name = "Reporting"
-              action = 'action_timesheet_report'
-              parent = 'timesheet_group1.timesheet_menu'
-            />
 
     <record
         model="ir.actions.act_window"
@@ -31,13 +21,53 @@
 
     <record
         model="ir.actions.client"
-        id="action_timesheet_report">
-        <field name="name">Timesheet Report</field>
+        id="action_timesheet_task_report">
+        <field name="name">Timesheet Task Report</field>
         <field name="tag">account_report</field>
-        <field name="context" eval="{'model': 'timesheet.report'}"/>
+        <field name="context" eval="{'model': 'timesheet.task.report'}"/>
     </record>
 
+    <record
+        model="ir.actions.client"
+        id="action_timesheet_project_employee_report">
+        <field name="name">Timesheet Project Employee Report</field>
+        <field name="tag">account_report</field>
+        <field name="context" eval="{'model': 'timesheet.project.employee.report'}"/>
+    </record>
 
+    <record
+        model="ir.actions.client"
+        id="action_timesheet_all_employee_report">
+        <field name="name">Timesheet All Employee Report</field>
+        <field name="tag">account_report</field>
+        <field name="context" eval="{'model': 'timesheet.all.employee.report'}"/>
+    </record>
+
+    <menuitem id = "menu_timesheet_views"
+              name = "Timesheet"
+              action = "action_timesheet_views"
+              parent = "timesheet_group1.timesheet_menu"
+            />
+
+    <menuitem name="Reporting" id="menu_timesheet_report"
+              parent="timesheet_menu"
+              sequence="10"
+            />
+
+    <menuitem name="By Task" id="menu_timesheet_report_task"
+              parent="menu_timesheet_report"
+              action="action_timesheet_task_report"
+            />
+
+    <menuitem name="By Employee" id="menu_timesheet_report_project_employee"
+              parent="menu_timesheet_report"
+              action="action_timesheet_project_employee_report"
+            />
+
+    <menuitem name="By All Employee" id="menu_timesheet_report_all_employee"
+              parent="menu_timesheet_report"
+              action="action_timesheet_all_employee_report"
+            />
 
 
     <record model="ir.rule" id="project_rule">
