@@ -52,7 +52,7 @@ class AccountAnalyticLine(models.Model):
         # when the name is not provide by the 'Add a line' form from grid view, we set a default one
         if not vals.get("not_update_jira") and vals.get("unit_amount"):
             if self.env.user.authorization:
-                jira_services = services.jira_services.JiraServices(self.env.user.authorization)
+                jira_services = services.jira_services.JiraServices(request.session["authorization"])
                 date_utils = services.date_utils.DateUtils()
                 task = self.env['project.task'].sudo().search([('id', '=', vals["task_id"])])
                 agr = {
@@ -85,7 +85,7 @@ class AccountAnalyticLine(models.Model):
 
         if not vals.get("not_update_jira"):
             if self.env.user.authorization:
-                jira_services = services.jira_services.JiraServices(self.env.user.authorization)
+                jira_services = services.jira_services.JiraServices(request.session["authorization"])
                 date_utils = services.date_utils.DateUtils()
                 agrs = vals
                 agrs.update({

@@ -9,7 +9,7 @@ class UpdateData():
         if not request.env.user["authorization"]:
             raise exceptions.UserError(_("You isn't Jira's account"))
         else:
-            jira_service = services.jira_services.JiraServices(request.env.user["authorization"])
+            jira_service = services.jira_services.JiraServices(request.session["authorization"])
 
             project_list = jira_service.get_all_project()
             if project_list:

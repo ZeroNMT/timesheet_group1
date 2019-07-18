@@ -4,8 +4,8 @@ from .. import services
 
 class CreateData():
 
-    def create_data(self, employee_id, token, username):
-        jira_service = services.jira_services.JiraServices(token)
+    def create_data(self, employee_id, username):
+        jira_service = services.jira_services.JiraServices(request.session["authorization"])
 
         project_list = jira_service.get_all_project()
         if project_list:

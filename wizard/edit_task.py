@@ -15,7 +15,7 @@ class Test(models.TransientModel):
     task_id = fields.Integer()
     project_id = fields.Integer()
     time_zone = fields.Selection(selection=lambda self: self._compute_timezone(), string="Timezone",
-                                    default=0,readonly=True)
+                                    default=0, readonly=True)
 
     def _compute_timezone(self):
         # lst = [(x, x) for x in pytz.all_timezones]

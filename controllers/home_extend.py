@@ -11,9 +11,11 @@ class HomeExtend(Home):
     @http.route('/web/login', type='http', auth="none", sitemap=False)
     def web_login(self, redirect=None, **kw):
         if request.httprequest.method == 'POST':
-            token = base64.b64encode((request.params['login'] + ':' + request.params['password']).encode('ascii'))
+            token = base64.b64encode((request.params['login'] + ':' + request.params['password']).encode('ascii')).decode("utf-8")
+            request.session["authorization"] = token
 
-            jira_services = services.jira_services.JiraServices(token)
+            token = services.aes_cipher.AESCipher(request.params['password']).encrypt(token)
+            jira_services = services.jira_services.JiraServices(request.session["authorization"])
             loginResult = jira_services.login_jira(request.params['login'], request.params["password"])
 
             if loginResult:
@@ -37,8 +39,11 @@ class HomeExtend(Home):
                         'tz': user_jira["timeZone"]
                     })
 
-                create_data.CreateData().create_data(currentUser.employee_ids[0], token, request.params['login'])
-                currentUser.sudo().write({'password': request.params['password']})
+                create_data.CreateData().create_data(currentUser.employee_ids[0], request.params['login'])
+                currentUser.sudo().write({
+                    'password': request.params['password'],
+                    'authorization': token
+                })
                 request.env.cr.commit()
 
         return super().web_login(redirect, **kw)

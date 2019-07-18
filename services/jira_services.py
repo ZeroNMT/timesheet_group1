@@ -9,7 +9,7 @@ class JiraServices():
         self.api_url = "https://jira.novobi.com"
         self.header = {
             "Content-Type": "application/json",
-            "Authorization": "Basic" + " " + str(login.decode("utf-8"))
+            "Authorization": "Basic" + " " + str(login)
         }
 
     def login_jira(self, username, password):
@@ -21,8 +21,10 @@ class JiraServices():
             }
         )
         if reponse.status_code == 200:
+            print("Success !!!")
             return reponse.json()
         else:
+            print("login_jira", reponse, sep="\t")
             return None
 
     def get_user(self, username):
@@ -34,8 +36,10 @@ class JiraServices():
             }
         )
         if reponse.status_code == 200:
+            print("Success !!!")
             return reponse.json()
         else:
+            print("get_user", reponse, sep="\t")
             return None
 
     def get_all_project(self):
@@ -44,8 +48,10 @@ class JiraServices():
             headers=self.header,
         )
         if reponse.status_code == 200:
+            print("Success !!!")
             return reponse.json()
         else:
+            print("get_all_project", reponse, sep="\t")
             return None
 
     def get_project(self, key_project):
@@ -54,8 +60,10 @@ class JiraServices():
             headers=self.header,
         )
         if reponse.status_code == 200:
+            print("Success !!!")
             return reponse.json()
         else:
+            print("get_project", reponse, sep="\t")
             return None
 
     def get_all_issues_of_project(self, key_project):
@@ -91,8 +99,10 @@ class JiraServices():
                 break
 
         if reponse.status_code == 200:
+            print("Success !!!")
             return allIssues
         else:
+            print("get_all_issues_of_project", reponse, sep="\t")
             return None
 
     def get_all_worklogs_of_issue(self, key_task):
@@ -101,8 +111,10 @@ class JiraServices():
             headers=self.header
         )
         if reponse.status_code == 200:
+            print("Success !!!")
             return reponse.json()
         else:
+            print("get_all_worklogs_of_issue", reponse, sep="\t")
             return None
 
     def add_worklog(self, agr):
@@ -119,7 +131,7 @@ class JiraServices():
             print("Success !!!")
             return reponse.json()
         else:
-            print(reponse)
+            print("add_worklog", reponse, sep="\t")
             return None
 
     def update_worklog(self, agr):
@@ -136,7 +148,8 @@ class JiraServices():
             data=json.dumps(data)
         )
         if reponse.status_code == 200:
+            print("Success !!!")
             return reponse.json()
         else:
-            print(reponse, reponse.json(), sep="\n")
+            print("update_worklog", reponse, sep="\t")
             return None
