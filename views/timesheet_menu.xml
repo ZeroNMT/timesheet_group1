@@ -1,20 +1,5 @@
 <?xml version="1.0"?>
 <odoo>
-    <menuitem id = "timesheet_menu"
-              name = "Jira's Timesheet"
-              web_icon="timesheet_group1,static/description/icon.png"
-                />
-    <menuitem id = "menu_timesheet_views"
-              name = "Timesheet"
-              action = "action_timesheet_views"
-              parent = "timesheet_group1.timesheet_menu"
-            />
-
-    <menuitem id = 'timesheet_report_view'
-              name = "Reporting"
-              action = 'action_timesheet_report'
-              parent = 'timesheet_group1.timesheet_menu'
-            />
 
     <record
         model="ir.actions.act_window"
@@ -36,6 +21,24 @@
         <field name="tag">account_report</field>
         <field name="context" eval="{'model': 'timesheet.report'}"/>
     </record>
+
+
+    <menuitem id = "timesheet_menu"
+              name = "Jira's Timesheet"
+              web_icon="timesheet_group1,static/description/icon.png"
+                />
+    <menuitem id = "menu_timesheet_views"
+              name = "Timesheet"
+              action = "action_timesheet_views"
+              parent = "timesheet_group1.timesheet_menu"
+            />
+
+    <menuitem id = 'timesheet_report_view'
+              name = "Reporting"
+              action = 'action_timesheet_report'
+              parent = 'timesheet_group1.timesheet_menu'
+            />
+
 
 
 
