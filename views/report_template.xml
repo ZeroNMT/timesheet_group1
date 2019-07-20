@@ -5,6 +5,7 @@
     <template id="line_template_timesheet" inherit_id="account_reports.line_template" primary="True">
         <xpath expr="//div[hasclass('o_account_reports_domain_dropdown')]/*[last()]" position="before">
             <t t-if="line['caret_options'] == 'project.task'"><a role="menuitem" tabindex="-1" t-att-data-id="line['id']" action="open_detail_task" class="dropdown-item">View detail</a></t>
+            <t t-if="line['caret_options'] == 'hr.employee'"><a role="menuitem" tabindex="-1" t-att-data-id="line['id']" action="open_detail_employee" class="dropdown-item">View detail</a></t>
         </xpath>
     </template>
 

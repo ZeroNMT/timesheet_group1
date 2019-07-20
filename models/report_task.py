@@ -13,7 +13,7 @@ class TimesheetTaskReport(models.AbstractModel):
         return "Timesheet Task"
 
     def _get_columns_name(self, options):
-        columns = [{'name': 'Project name'}, {'name': 'Unit amount'}]
+        columns = [{'name': 'Project'}, {'name': 'Unit amount'}]
         return columns
 
     def _get_lines(self, options, line_id=None):
@@ -23,7 +23,7 @@ class TimesheetTaskReport(models.AbstractModel):
             SELECT
                    "project_project".key, "project_project".name,
                     sum("account_analytic_line".unit_amount), "project_project".id
-            FROM project_project LEFT JOIN account_analytic_line
+            FROM account_analytic_line LEFT JOIN project_project
             ON "account_analytic_line".project_id = "project_project".id
             WHERE to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
             GROUP BY "project_project".id
@@ -49,7 +49,7 @@ class TimesheetTaskReport(models.AbstractModel):
                 SELECT
                        "project_project".key, "project_project".name,
                         sum("account_analytic_line".unit_amount), "project_project".id
-                FROM project_project LEFT JOIN account_analytic_line 
+                FROM account_analytic_line LEFT JOIN project_project 
                 ON "project_project".id = %s AND "account_analytic_line".project_id = "project_project".id
                 WHERE "project_project".key IS NOT NULL AND to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
                 GROUP BY "project_project".id
@@ -63,7 +63,7 @@ class TimesheetTaskReport(models.AbstractModel):
                 SELECT
                      "project_task".key, "project_task".name, 
                      sum("account_analytic_line".unit_amount), "project_task".id
-                FROM project_task LEFT JOIN  account_analytic_line 
+                FROM account_analytic_line LEFT JOIN project_task
                 ON "project_task".project_id = %s
                         AND "account_analytic_line".task_id = "project_task".id 
                 WHERE to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
@@ -91,7 +91,7 @@ class TimesheetTaskReport(models.AbstractModel):
                         'name': "[%s] %s" % (task["key"], task["name"]),
                         'level': 4,
                         'parent_id': line_id,
-                        'columns': [{'name': '%.2f' %0.00 if task['sum'] is None else '%.2f' % task['sum']}],
+                        'columns': [{'name': 0.00 if task['sum'] is None else '%.2f' % task['sum']}],
                         'caret_options': 'project.task'
                     })
             lines.append({

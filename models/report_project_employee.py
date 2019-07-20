@@ -12,7 +12,7 @@ class TimesheetProjectEmployeeReport(models.AbstractModel):
         return "Timesheet Project Employee Task"
 
     def _get_columns_name(self, options):
-        columns = [{'name': 'Project name'}, {'name': 'Unit amount'}]
+        columns = [{'name': 'Project'}, {'name': 'Unit amount'}]
         return columns
 
     def _get_lines(self, options, line_id=None):
@@ -60,13 +60,14 @@ class TimesheetProjectEmployeeReport(models.AbstractModel):
 
             sql_query_employee = """
                 SELECT
-                     "hr_employee".name, sum("account_analytic_line".unit_amount)
+                     "hr_employee".name, sum("account_analytic_line".unit_amount),
+                     "hr_employee".id
                 FROM hr_employee  LEFT JOIN account_analytic_line
                 ON "account_analytic_line".employee_id = "hr_employee".id
                 WHERE "account_analytic_line".id_jira IS NOT NULL AND to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
-                GROUP BY "account_analytic_line".employee_id, "hr_employee".name
+                GROUP BY "hr_employee".id, "hr_employee".name
             """
-            sql_query_employee = sql_query_employee % (comparison_table['date_from'],comparison_table['date_to'])
+            sql_query_employee = sql_query_employee % (comparison_table['date_from'], comparison_table['date_to'])
             self.env.cr.execute(sql_query_employee)
             results_employee = self.env.cr.dictfetchall()
             print(results_employee)
@@ -83,11 +84,12 @@ class TimesheetProjectEmployeeReport(models.AbstractModel):
             for employee in results_employee:
                 total_employees += 0.0 if employee['sum'] is None else employee['sum']
                 lines.append({
-                    'id': 'task_%s' % employee["name"],
+                    'id': 'task_%s' % employee["id"],
                     'name': employee["name"],
                     'level': 4,
                     'parent_id': line_id,
-                    'columns': [{'name': '%.2f' %0.00 if employee['sum'] is None else '%.2f' %employee['sum']}]
+                    'columns': [{'name': 0.00 if employee['sum'] is None else '%.2f' % employee['sum']}],
+                    'caret_options': 'hr.employee'
                 })
             lines.append({
                 'id': 'total_%s' % line_id,
@@ -106,3 +108,27 @@ class TimesheetProjectEmployeeReport(models.AbstractModel):
                 'columns': [{'name': '%.2f' % total_all_project}]
             })
         return lines
+
+
+    def _get_templates(self):
+        templates = super(TimesheetProjectEmployeeReport, self)._get_templates()
+        templates['line_template'] = 'timesheet_group1.line_template_timesheet'
+        return templates
+
+    @api.multi
+    def open_detail_employee(self, options, params=None):
+        if not params:
+            params = {}
+
+        ctx = self.env.context.copy()
+        ctx.pop('id', '')
+        res_id = params.get('id').split("_")[1]
+        view_id = self.env['ir.model.data'].get_object_reference("hr", "view_employee_form")[1]
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': "hr.employee",
+            'view_mode': 'form',
+            'views': [(view_id, 'form')],
+            'res_id': int(res_id),
+            'context': ctx,
+        }
