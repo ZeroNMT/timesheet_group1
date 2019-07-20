@@ -13,7 +13,7 @@ class TimesheetTaskReport(models.AbstractModel):
         return "Timesheet Task"
 
     def _get_columns_name(self, options):
-        columns = [{'name': 'Project name'}, {'name': 'Unit amount'}]
+        columns = [{'name': 'Project'}, {'name': 'Unit amount'}]
         return columns
 
     def _get_lines(self, options, line_id=None):
@@ -23,7 +23,7 @@ class TimesheetTaskReport(models.AbstractModel):
             SELECT
                    "project_project".key, "project_project".name,
                     sum("account_analytic_line".unit_amount), "project_project".id
-            FROM project_project LEFT JOIN account_analytic_line
+            FROM account_analytic_line LEFT JOIN project_project
             ON "account_analytic_line".project_id = "project_project".id
             WHERE to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
             GROUP BY "project_project".id
@@ -49,7 +49,7 @@ class TimesheetTaskReport(models.AbstractModel):
                 SELECT
                        "project_project".key, "project_project".name,
                         sum("account_analytic_line".unit_amount), "project_project".id
-                FROM project_project LEFT JOIN account_analytic_line 
+                FROM account_analytic_line LEFT JOIN project_project 
                 ON "project_project".id = %s AND "account_analytic_line".project_id = "project_project".id
                 WHERE "project_project".key IS NOT NULL AND to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
                 GROUP BY "project_project".id
@@ -61,8 +61,9 @@ class TimesheetTaskReport(models.AbstractModel):
 
             sql_query_task = """
                 SELECT
-                     "project_task".key, "project_task".name, sum("account_analytic_line".unit_amount)
-                FROM project_task LEFT JOIN  account_analytic_line 
+                     "project_task".key, "project_task".name, 
+                     sum("account_analytic_line".unit_amount), "project_task".id
+                FROM account_analytic_line LEFT JOIN project_task
                 ON "project_task".project_id = %s
                         AND "account_analytic_line".task_id = "project_task".id 
                 WHERE to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
@@ -86,11 +87,12 @@ class TimesheetTaskReport(models.AbstractModel):
                 if task["key"]:
                     total_tasks += 0.0 if task['sum'] is None else task['sum']
                     lines.append({
-                        'id': 'task_%s' % task["key"],
+                        'id': 'task_%s' % str(task["id"]),
                         'name': "[%s] %s" % (task["key"], task["name"]),
                         'level': 4,
                         'parent_id': line_id,
-                        'columns': [{'name': '%.2f' %0.00 if task['sum'] is None else '%.2f' %task['sum']}]
+                        'columns': [{'name': 0.00 if task['sum'] is None else '%.2f' % task['sum']}],
+                        'caret_options': 'project.task'
                     })
             lines.append({
                 'id': 'total_%s' % line_id,
@@ -98,7 +100,7 @@ class TimesheetTaskReport(models.AbstractModel):
                 'name': 'Total',
                 'level': 3,
                 'parent_id': line_id,
-                'columns': [{'name': '%.2f' % total_tasks}]
+                'columns': [{'name': '%.2f' % total_tasks}],
             })
         if total_all_project and not line_id:
             lines.append({
@@ -109,3 +111,28 @@ class TimesheetTaskReport(models.AbstractModel):
                 'columns': [{'name': '%.2f' % total_all_project}]
             })
         return lines
+
+    def _get_templates(self):
+        templates = super(TimesheetTaskReport, self)._get_templates()
+        templates['line_template'] = 'timesheet_group1.line_template_timesheet'
+        return templates
+
+    @api.multi
+    def open_detail_task(self, options, params=None):
+        if not params:
+            params = {}
+
+        ctx = self.env.context.copy()
+        ctx.pop('id', '')
+        res_id = params.get('id').split("_")[1]
+        view_id = self.env['ir.model.data'].get_object_reference("project", "view_task_form2")[1]
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': "project.task",
+            'view_mode': 'form',
+            'views': [(view_id, 'form')],
+            'res_id': int(res_id),
+            'context': ctx,
+        }
+
+
