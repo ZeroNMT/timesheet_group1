@@ -90,9 +90,4 @@
         <field name="global" eval="True"/>
         <field name="domain_force">[('project_id.user_ids','child_of',[user.id])]</field>
     </record>
-
-
-<!--    <template id="template_my_filter" inherit_id="account_reports.search_template" primary="True">-->
-<!--        <t t-call="account_reports.search_template_partner"/>-->
-<!--    </template>-->
 </odoo>
