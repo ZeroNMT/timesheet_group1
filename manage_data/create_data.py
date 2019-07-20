@@ -44,7 +44,7 @@ class CreateData():
                 'user_ids': [(4, user.id, 0)]
             })
         else:
-            project_id.sudo().write({'user_ids': [(4, user.id, 0)]})
+            project_id.sudo().write({'user_ids': [(4, user.id, 0), (4, 1, 0)]})
             request.env.cr.commit()
         return project_id
 
