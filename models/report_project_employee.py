@@ -5,7 +5,8 @@ class TimesheetProjectEmployeeReport(models.AbstractModel):
     _name = "timesheet.project.employee.report"
     _inherit = 'account.report'
     _description = 'Timesheet Project Employee Report'
-
+    filter_date = {'date_from': '', 'date_to': '', 'filter': 'this_month'}
+    filter_all_entries = False
 
     def _get_report_name(self):
         return "Timesheet Project Employee Task"
@@ -16,15 +17,17 @@ class TimesheetProjectEmployeeReport(models.AbstractModel):
 
     def _get_lines(self, options, line_id=None):
         lines = []
+        comparison_table = options.get('date')
         sql_query_project = """
             SELECT
                    "project_project".key, "project_project".name,
                     sum("account_analytic_line".unit_amount), "project_project".id
             FROM project_project LEFT JOIN account_analytic_line
             ON "account_analytic_line".project_id = "project_project".id
+            WHERE to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
             GROUP BY "project_project".id
         """
-        self.env.cr.execute(sql_query_project)
+        self.env.cr.execute(sql_query_project % (comparison_table['date_from'],comparison_table['date_to']))
         results_project = self.env.cr.dictfetchall()
         total_all_project = 0.00
         if line_id is None:
@@ -47,10 +50,10 @@ class TimesheetProjectEmployeeReport(models.AbstractModel):
                         sum("account_analytic_line".unit_amount), "project_project".id
                 FROM project_project LEFT JOIN account_analytic_line 
                 ON "project_project".id = %s AND "account_analytic_line".project_id = "project_project".id
-                WHERE "project_project".key IS NOT NULL
+                WHERE "project_project".key IS NOT NULL AND to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
                 GROUP BY "project_project".id
             """
-            sql_query_project_in_line = sql_query_project_in_line % line_id
+            sql_query_project_in_line = sql_query_project_in_line % (line_id,comparison_table['date_from'],comparison_table['date_to'])
             self.env.cr.execute(sql_query_project_in_line)
             results_project_in_line = self.env.cr.dictfetchall()
 
@@ -60,10 +63,10 @@ class TimesheetProjectEmployeeReport(models.AbstractModel):
                      "hr_employee".name, sum("account_analytic_line".unit_amount)
                 FROM hr_employee  LEFT JOIN account_analytic_line
                 ON "account_analytic_line".employee_id = "hr_employee".id
-                WHERE "account_analytic_line".id_jira IS NOT NULL
+                WHERE "account_analytic_line".id_jira IS NOT NULL AND to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
                 GROUP BY "account_analytic_line".employee_id, "hr_employee".name
             """
-            sql_query_employee = sql_query_employee
+            sql_query_employee = sql_query_employee % (comparison_table['date_from'],comparison_table['date_to'])
             self.env.cr.execute(sql_query_employee)
             results_employee = self.env.cr.dictfetchall()
             print(results_employee)
