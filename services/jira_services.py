@@ -82,9 +82,7 @@ class JiraServices():
                         "assignee",
                         "status",
                         "summary",
-                        "project",
                         "updated",
-                        "worklog"
                     ]
                 }
             )

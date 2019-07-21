@@ -2,7 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import _,api,fields, models, exceptions
-from ..manage_data import update_data
+from .. import manage_data
 
 
 class Update(models.TransientModel):
@@ -12,7 +12,7 @@ class Update(models.TransientModel):
         if not self.env.user["authorization"]:
             raise exceptions.UserError(_("You isn't Jira's account"))
         else:
-            update_data.UpdateData().update_data(self.env.user.name)
+            manage_data.update_data.UpdateData().update_data(self.env.user.login)
         return {
             'type': 'ir.actions.client',
             'tag': 'reload'
