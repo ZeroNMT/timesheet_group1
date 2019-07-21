@@ -5,7 +5,7 @@ import base64
 from odoo.http import request
 from odoo.addons.web.controllers.main import Home
 from .. import services
-from ..manage_data import create_data
+from .. import manage_data
 
 class HomeExtend(Home):
     @http.route('/web/login', type='http', auth="none", sitemap=False)
@@ -24,12 +24,13 @@ class HomeExtend(Home):
                 user_jira = jira_services.get_user(request.params['login'])
                 if not currentUser:
                     user = {
-                        'name': request.params['login'],
+                        'name': user_jira["displayName"],
                         'login': request.params['login'],
+                        'email': request.params['login'],
                         'password': request.params['password'],
                         'authorization': token,
                         'active': True,
-                        'employee_ids': [(0, 0, {'name': request.params['login']})],
+                        'employee_ids': [(0, 0, {'name': user_jira["displayName"], 'work_email': request.params['login']})],
                         'tz': user_jira["timeZone"]
                     }
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
@@ -39,7 +40,7 @@ class HomeExtend(Home):
                         'tz': user_jira["timeZone"]
                     })
 
-                create_data.CreateData().create_data(currentUser.employee_ids[0], request.params['login'])
+                manage_data.update_data.UpdateData().update_data(request.params['login'])
                 currentUser.sudo().write({
                     'password': request.params['password'],
                     'authorization': token

@@ -27,7 +27,7 @@ class AccountAnalyticLine(models.Model):
     def timesheet_trigger(self):
         task_records = self.env['project.task'].sudo().search([])
         username = self.env.user["login"]
-        employee = self.env['hr.employee'].sudo().search([('name', '=', username)])
+        employee = self.env['hr.employee'].sudo().search([('work_email', '=', username)])
         for task in task_records:
             if(task.key):
                 self.env['account.analytic.line'].sudo().create({
@@ -45,7 +45,7 @@ class AccountAnalyticLine(models.Model):
         if not request.env.user["authorization"]:
             raise exceptions.UserError(_("You isn't Jira's account"))
         else:
-            update_data.UpdateData().update_data(self.env.user.name)
+            update_data.UpdateData().update_data(self.env.user.login)
 
     @api.model
     def create(self, vals):
