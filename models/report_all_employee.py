@@ -12,7 +12,7 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
         return "Timesheet All Employee Task"
 
     def _get_columns_name(self, options):
-        columns = [{'name': 'Employee name'}, {'name': 'Unit amount'}]
+        columns = [{'name': 'Employee'}, {'name': 'Unit amount'}]
         return columns
 
     def _get_lines(self, options, line_id=None):
@@ -39,7 +39,7 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
                     'level': 2,
                     'unfoldable': True,
                     'unfolded': False,
-                    'columns': [{'name': '%.2f' % employee["sum"]}]
+                    'columns': [{'name': self.covertFloatToTime(employee["sum"])}]
                 })
 
         if line_id:
@@ -74,7 +74,7 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
                 'level': 2,
                 'unfoldable': True,
                 'unfolded': True,
-                'columns': [{'name': '%.2f' % results_employee_in_line[0]["sum"]}]
+                'columns': [{'name': self.covertFloatToTime(results_employee_in_line[0]["sum"])}]
             })
             total_projects = 0.00
             for project in result_projects:
@@ -84,7 +84,7 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
                     'name': project["name"],
                     'level': 4,
                     'parent_id': line_id,
-                    'columns': [{'name': '%.2f' %0.00 if project['sum'] is None else '%.2f' %project['sum']}]
+                    'columns': [{'name': "00:00" if project['sum'] is None else self.covertFloatToTime(project['sum'])}]
                 })
             lines.append({
                 'id': 'total_%s' % line_id,
@@ -92,7 +92,7 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
                 'name': 'Total',
                 'level': 3,
                 'parent_id': line_id,
-                'columns': [{'name': '%.2f' % total_projects}]
+                'columns': [{'name': self.covertFloatToTime(total_projects)}]
             })
         if total_all_project and not line_id:
             lines.append({
@@ -100,6 +100,15 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
                 'class': 'o_account_reports_domain_total',
                 'name': 'Total',
                 'level': 1,
-                'columns': [{'name': '%.2f' % total_all_project}]
+                'columns': [{'name': self.covertFloatToTime(total_all_project)}]
             })
         return lines
+
+    def covertFloatToTime(self,unit_amount):
+        hour_integer = int(unit_amount)
+        string_hour_integer = str(hour_integer) if hour_integer >= 10 else "0" + str(hour_integer)
+        minute = (unit_amount - hour_integer)*60
+        minute_integer = int(minute)
+        string_minute_integer = str(minute_integer) if minute_integer >= 10 else "0" + str(minute_integer)
+        result = string_hour_integer + ":" + string_minute_integer
+        return result
