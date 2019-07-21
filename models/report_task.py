@@ -19,16 +19,26 @@ class TimesheetTaskReport(models.AbstractModel):
         lines = []
         context = self.env.context
         comparison_table = options.get('date')
+        sql_query_project = """
+            SELECT
+                   "project_project".key, "project_project".name,
+                    sum("account_analytic_line".unit_amount), "project_project".id
+            FROM account_analytic_line LEFT JOIN project_project
+            ON "account_analytic_line".project_id = "project_project".id
+            WHERE to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
+            GROUP BY "project_project".id
+        """
+        sql_query_task = """
+            SELECT
+                 "project_task".key, "project_task".name, 
+                 sum("account_analytic_line".unit_amount), "project_task".id
+            FROM account_analytic_line LEFT JOIN project_task
+            ON "project_task".project_id = %s AND "account_analytic_line".task_id = "project_task".id 
+            WHERE to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
+            GROUP BY "project_task".id
+            ORDER BY "project_task".key ASC 
+        """
         if(context.get('print_mode') is None):
-            sql_query_project = """
-                SELECT
-                       "project_project".key, "project_project".name,
-                        sum("account_analytic_line".unit_amount), "project_project".id
-                FROM account_analytic_line LEFT JOIN project_project
-                ON "account_analytic_line".project_id = "project_project".id
-                WHERE to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
-                GROUP BY "project_project".id
-            """
             self.env.cr.execute(sql_query_project % (comparison_table['date_from'],comparison_table['date_to']))
             results_project = self.env.cr.dictfetchall()
             total_all_project = 0.00
@@ -59,18 +69,6 @@ class TimesheetTaskReport(models.AbstractModel):
                 self.env.cr.execute(sql_query_project_in_line)
                 results_project_in_line = self.env.cr.dictfetchall()
 
-
-                sql_query_task = """
-                    SELECT
-                         "project_task".key, "project_task".name, 
-                         sum("account_analytic_line".unit_amount), "project_task".id
-                    FROM account_analytic_line LEFT JOIN project_task
-                    ON "project_task".project_id = %s
-                            AND "account_analytic_line".task_id = "project_task".id 
-                    WHERE to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
-                    GROUP BY "project_task".id
-                    ORDER BY "project_task".key ASC 
-                """
                 sql_query_task = sql_query_task % (line_id,comparison_table['date_from'],comparison_table['date_to'])
                 self.env.cr.execute(sql_query_task)
                 results_task = self.env.cr.dictfetchall()
@@ -112,15 +110,6 @@ class TimesheetTaskReport(models.AbstractModel):
                     'columns': [{'name': self.covertFloatToTime(total_all_project)}]
                 })
         else:
-            sql_query_project = """
-                            SELECT
-                                   "project_project".key, "project_project".name,
-                                    sum("account_analytic_line".unit_amount), "project_project".id
-                            FROM account_analytic_line LEFT JOIN project_project
-                            ON "account_analytic_line".project_id = "project_project".id
-                            WHERE to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
-                            GROUP BY "project_project".id
-                        """
             self.env.cr.execute(sql_query_project % (comparison_table['date_from'], comparison_table['date_to']))
             results_project = self.env.cr.dictfetchall()
             total_all_project = 0.00
@@ -135,16 +124,6 @@ class TimesheetTaskReport(models.AbstractModel):
                         'unfolded': True,
                         'columns': [{'name': self.covertFloatToTime(project["sum"])}]
                     })
-                    sql_query_task = """
-                        SELECT
-                             "project_task".key, "project_task".name, 
-                             sum("account_analytic_line".unit_amount), "project_task".id
-                        FROM account_analytic_line LEFT JOIN project_task
-                        ON "project_task".project_id = %s AND "account_analytic_line".task_id = "project_task".id 
-                        WHERE to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
-                        GROUP BY "project_task".id
-                        ORDER BY "project_task".key ASC 
-                    """
                     sql_query_task = sql_query_task % (str(project["id"]),comparison_table['date_from'], comparison_table['date_to'])
                     self.env.cr.execute(sql_query_task)
                     results_task = self.env.cr.dictfetchall()
