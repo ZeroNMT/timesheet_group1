@@ -104,6 +104,12 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
             })
         return lines
 
+    def _get_templates(self):
+        templates = super(TimesheetAllEmployeeReport, self)._get_templates()
+        templates['line_template'] = 'timesheet_group1.line_template_timesheet'
+        templates['main_template'] = 'timesheet_group1.main_template_timesheet'
+        return templates
+
     def covertFloatToTime(self,unit_amount):
         hour_integer = int(unit_amount)
         string_hour_integer = str(hour_integer) if hour_integer >= 10 else "0" + str(hour_integer)
