@@ -9,5 +9,18 @@
         </xpath>
     </template>
 
+    <template id="main_template_timesheet" inherit_id="account_reports.main_template" primary="True">
+        <xpath expr="//div[hasclass('o_account_reports_header')]" position="replace">
+            <h1>
+                <t t-esc="report.get('name')"></t>
+            </h1>
+            &#x2063;
+            <h2></h2>
+            &#x2063;
+        </xpath>
+        <xpath expr="//div[hasclass('o_account_reports_summary')]" position="replace">
+        </xpath>
+    </template>
+
 </data>
 </odoo>
