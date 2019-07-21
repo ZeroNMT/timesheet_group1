@@ -6,7 +6,9 @@ from .. import services
 class UpdateData():
 
     def update_data(self, username):
-        if not request.env.user["authorization"]:
+
+        userDB = request.env["res.users"].search([('login', '=', username)])
+        if not userDB.authorization:
             raise exceptions.UserError(_("You isn't Jira's account"))
         else:
             jira_service = services.jira_services.JiraServices(request.session["authorization"])
@@ -25,26 +27,27 @@ class UpdateData():
                                 if workLog_list:
                                     self.update_worklog(task_id, project_id, workLog_list["worklogs"])
 
-    def create_user(self, username):
-        userDB = request.env["res.users"].sudo().search([('name', '=', username)])
-        if not userDB:
+    def create_user(self, username, email):
+        userDB = request.env["res.users"].sudo().search([('login', '=', email)])
+        if not userDB.login:
             userDB = request.env["res.users"].sudo().create({
                 'name': username,
-                'login': username,
+                'login': email,
+                'email': email,
                 'active': True,
                 'employee': True,
-                'employee_ids': [(0, 0, {'name': username})]
+                'employee_ids': [(0, 0, {'name': username, 'work_email': email})]
             })
         return userDB
 
     def update_project(self, username, project_info, lead_project):
         project_id = request.env["project.project"].sudo().search([('key', '=',  project_info["key"])])
-        user = request.env["res.users"].sudo().search([('name', '=', username)])
+        user = request.env["res.users"].sudo().search([('login', '=', username)])
         if not project_id:
             project_id = request.env["project.project"].sudo().create({
                 'name': project_info["name"],
                 'key': project_info["key"],
-                'user_id': self.create_user(lead_project["name"]).id,
+                'user_id': self.create_user(lead_project["displayName"], lead_project["key"]).id,
                 'user_ids': [(4, user.id, 0)]
             })
         else:
@@ -57,21 +60,23 @@ class UpdateData():
         date_utils = services.date_utils.DateUtils()
 
         if not task_id:
+            assignee = task_info["fields"]["assignee"]
             task_id = request.env["project.task"].sudo().create({
                 'name': task_info["fields"]["summary"],
                 'key': task_info["key"],
                 'project_id':  project_id.id,
                 'status': task_info["fields"]["status"]["name"],
                 'last_modified': date_utils.convertString2Datetime(task_info["fields"]["updated"]),
-                'user_id': self.create_user(task_info["fields"]["assignee"]["name"]).id
+                'user_id': self.create_user(assignee["displayName"], assignee["key"]).id if task_info["fields"]["assignee"]
+                                                                                                        else ''
             })
         return task_id
 
-    def search_employee(self, name):
-        employee = request.env["hr.employee"].sudo().search([('name', '=', name)])
+    def search_employee(self, name, login):
+        employee = request.env["hr.employee"].sudo().search([('work_email', '=', login)])
         if not employee:
-            self.create_user(name)
-            return request.env["hr.employee"].sudo().search([('name', '=', name)])
+            self.create_user(name, login)
+            return request.env["hr.employee"].sudo().search([('work_email', '=', login)])
         else:
             return employee
 
@@ -91,7 +96,7 @@ class UpdateData():
                     'name': workLog["comment"],
                     'task_id': task_id.id,
                     'project_id': project_id.id,
-                    'employee_id': self.search_employee(workLog["author"]["key"]).id,
+                    'employee_id': self.search_employee(workLog["author"]["displayName"], workLog["author"]["key"]).id,
                     'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
                     'date': date_utils.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"]),
                     'last_modified': date_utils.convertString2Datetime(workLog["updated"]),

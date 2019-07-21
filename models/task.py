@@ -6,6 +6,7 @@ class ProjectTask(models.Model):
     key = fields.Char("Key Jira Task")
     status = fields.Char("Status")
     last_modified = fields.Datetime("Last Modified Jira")
+    _order = 'key'
 
     @api.multi
     def name_get(self):

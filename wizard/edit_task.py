@@ -27,7 +27,7 @@ class Test(models.TransientModel):
         self.ensure_one()
         #Add worklog in Odoo
         date_utils = services.date_utils.DateUtils()
-        employee = self.env['hr.employee'].sudo().search([('name', '=', self.env.user["login"])])
+        employee = self.env['hr.employee'].sudo().search([('work_email', '=', self.env.user["login"])])
         datetime = date_utils.convertToLocalTZ(self.date, self.env.user.tz).replace(tzinfo=pytz.timezone(self.time_zone))
         if(self.time_spent == 0.0):
             raise exceptions.UserError(_("Please enter Unit amout > 0"))
