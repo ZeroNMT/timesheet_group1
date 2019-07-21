@@ -151,3 +151,15 @@ class JiraServices():
         else:
             print("update_worklog", reponse, sep="\t")
             return None
+
+    def delete_worklog(self, agr):
+        reponse = requests.delete(
+            url=self.api_url + "/rest/api/2/issue/%s/worklog/%s" % (agr["task_key"], agr["worklog_id"]),
+            headers=self.header,
+        )
+        if reponse.status_code == 204:
+            print("Success !!!")
+            return reponse
+        else:
+            print("delete_worklog", reponse, sep="\t")
+            return None
