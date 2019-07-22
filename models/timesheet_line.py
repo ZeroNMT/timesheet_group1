@@ -105,11 +105,12 @@ class AccountAnalyticLine(models.Model):
 
     @api.multi
     def unlink(self):
-        agrs = {
-            "worklog_id": self.id_jira,
-            "task_key": self.task_id.key
-        }
-        services.jira_services.JiraServices(request.session["authorization"]).delete_worklog(agrs)
+        for line in self:
+            agrs = {
+                "worklog_id": line.id_jira,
+                "task_key": line.task_id.key
+            }
+            services.jira_services.JiraServices(request.session["authorization"]).delete_worklog(agrs)
 
         return super(AccountAnalyticLine, self).unlink()
 
