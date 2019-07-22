@@ -3,7 +3,7 @@
 
 from odoo import _,api,fields, models, exceptions
 from .. import manage_data
-
+from odoo.http import request
 
 class Update(models.TransientModel):
     _name = 'update.task'
@@ -12,7 +12,8 @@ class Update(models.TransientModel):
         if not self.env.user["authorization"]:
             raise exceptions.UserError(_("You isn't Jira's account"))
         else:
-            manage_data.update_data.UpdateData().update_data(self.env.user.login)
+            request.env['account.analytic.line'].sudo().with_delay().update_data(self.env.user.login,
+                                                                                 request.session["authorization"])
         return {
             'type': 'ir.actions.client',
             'tag': 'reload'

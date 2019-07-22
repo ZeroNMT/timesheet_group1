@@ -117,9 +117,8 @@ class AccountAnalyticLine(models.Model):
 
     @api.multi
     @job
-    def create_workLog(self,lst):
-        for item in lst:
-            self.create(item)
+    def update_data(self, login, token):
+        update_data.UpdateData().update_data(login, token)
 
     @api.multi
     def add_timesheet(self):
