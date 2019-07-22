@@ -5,14 +5,15 @@ from .. import services
 
 class UpdateData():
 
-    def update_data(self, username):
+    def update_data(self, username, token=None):
 
         userDB = request.env["res.users"].search([('login', '=', username)])
         if not userDB.authorization:
             raise exceptions.UserError(_("You isn't Jira's account"))
         else:
+            if token is not None:
+                request.session["authorization"] = token
             jira_service = services.jira_services.JiraServices(request.session["authorization"])
-
             project_list = jira_service.get_all_project()
             if project_list:
                 for project in project_list:
