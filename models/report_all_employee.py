@@ -186,12 +186,10 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
 
     def _build_options(self, previous_options=None):
         options = super(TimesheetAllEmployeeReport, self)._build_options(previous_options=previous_options)
-        if not previous_options.get("employees"):
+        if not previous_options or not previous_options.get("employees"):
             options["employees"] = self._get_employees()
         else:
             options["employees"] = previous_options["employees"]
-
-
         return options
 
     def _get_employees(self):
