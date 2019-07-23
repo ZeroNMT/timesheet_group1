@@ -170,6 +170,8 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
         templates = super(TimesheetAllEmployeeReport, self)._get_templates()
         templates['line_template'] = 'timesheet_group1.line_template_timesheet'
         templates['main_template'] = 'timesheet_group1.main_template_timesheet'
+        templates['search_template'] = 'timesheet_group1.search_template_timesheet'
+
         return templates
 
     def covertFloatToTime(self,unit_amount):
@@ -180,3 +182,27 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
         string_minute_integer = str(minute_integer) if minute_integer >= 10 else "0" + str(minute_integer)
         result = string_hour_integer + ":" + string_minute_integer
         return result
+
+
+    def _build_options(self, previous_options=None):
+        options = super(TimesheetAllEmployeeReport, self)._build_options(previous_options=previous_options)
+        if not previous_options.get("employees"):
+            options["employees"] = self._get_employees()
+        else:
+            options["employees"] = previous_options["employees"]
+
+
+        return options
+
+    def _get_employees(self):
+        employees = []
+        employees_read = self.env["hr.employee"].search([('isNovobi', '=',  True)])
+        for e in employees_read:
+            employees.append({
+                'id': e.id,
+                'name': e.name,
+                'code': e.name,
+                'type': e.name,
+                'selected': False
+            })
+        return employees

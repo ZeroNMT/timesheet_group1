@@ -22,5 +22,40 @@
         </xpath>
     </template>
 
+
+    <template id="search_template_employees">
+        <a type="button" class="dropdown-toggle" data-toggle="dropdown">
+            <span class="fa fa-book"/>
+            Employees:
+            <t t-set="selected_employees" t-value="', '.join(employee.get('code') for employee in options['employees'] if employee.get('selected'))"/>
+
+            <t t-if="selected_employees">
+                <t t-esc="selected_employees"/>
+            </t>
+            <t t-else="">
+                All
+            </t>
+        </a>
+        <div class="dropdown-menu o_filters_menu" role="menu">
+            <t t-foreach="options['employees']" t-as="j">
+                <t t-if="j.get('id') == 'divider'">
+                    <div role="separator" class="dropdown-divider"/>
+                    <b role="menuitem" class="ml4 dropdown-item-text"><t t-esc="j.get('name')"/></b>
+                    <div role="separator" class="dropdown-divider"/>
+                </t>
+                <t t-if="j.get('id') != 'divider'">
+                    <a role="menuitem" class="dropdown-item js_account_report_choice_filter" t-att-title="j.get('name')+ '-' + j.get('code')" t-att-data-id="j.get('id')" data-filter="employees"><t t-esc="j.get('name')"/></a>
+                </t>
+            </t>
+        </div>
+    </template>
+
+    <template id="search_template_timesheet" inherit_id="account_reports.search_template" primary="True">
+        <xpath expr="//div[hasclass('o_account_reports_filter_date')]" position="before">
+            <t t-call="timesheet_group1.search_template_employees"/>
+        </xpath>
+    </template>
+
+
 </data>
 </odoo>
