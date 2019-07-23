@@ -1,4 +1,5 @@
 from odoo import models, fields, api, _
+from odoo.tools.misc import formatLang, format_date, get_user_companies
 
 class TimesheetTaskReport(models.AbstractModel):
     _name = "timesheet.task.report"
@@ -6,7 +7,7 @@ class TimesheetTaskReport(models.AbstractModel):
     _description = 'Timesheet  Report'
     filter_date = {'date_from': '', 'date_to': '', 'filter': 'this_month'}
     filter_all_entries = False
-
+    filter_employees = True
 
     def _get_report_name(self):
         return "Timesheet Task"
@@ -189,6 +190,3 @@ class TimesheetTaskReport(models.AbstractModel):
         string_minute_integer = str(minute_integer) if minute_integer >= 10 else "0" + str(minute_integer)
         result = string_hour_integer + ":" + string_minute_integer
         return result
-
-
-

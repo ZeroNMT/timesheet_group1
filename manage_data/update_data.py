@@ -37,7 +37,9 @@ class UpdateData():
                 'email': email,
                 'active': True,
                 'employee': True,
-                'employee_ids': [(0, 0, {'name': username, 'work_email': email})]
+                'employee_ids': [(0, 0, {'name': username,
+                                         'work_email': email,
+                                         'isNovobi': True})]
             })
         return userDB
 
