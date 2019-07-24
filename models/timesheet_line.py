@@ -2,7 +2,7 @@ from odoo import _, api, fields, models, exceptions
 from odoo.http import request
 import datetime
 from odoo.exceptions import AccessError
-from ..manage_data import update_data
+from ..manage_data.update_data import UpdateData
 from .. import services
 from odoo.addons.queue_job.job import job
 
@@ -45,12 +45,11 @@ class AccountAnalyticLine(models.Model):
         if not request.env.user["authorization"]:
             raise exceptions.UserError(_("You isn't Jira's account"))
         else:
-            update_data.UpdateData().update_data(self.env.user.login)
+            UpdateData().update_data(self.env.user.login)
 
     @api.model
     def create(self, vals):
-        # when the name is not provide by the 'Add a line' form from grid view, we set a default one
-        if not vals.get("not_update_jira") and vals.get("unit_amount"):
+        if 'not_update_jira' not in self.env.context and vals.get("unit_amount"):
             if self.env.user.authorization:
                 jira_services = services.jira_services.JiraServices(request.session["authorization"])
                 date_utils = services.date_utils.DateUtils()
@@ -83,7 +82,7 @@ class AccountAnalyticLine(models.Model):
         if not vals.get("amount") is None:
             return super(AccountAnalyticLine, self).write(vals)
 
-        if not vals.get("not_update_jira"):
+        if 'not_update_jira' not in self.env.context:
             if self.env.user.authorization:
                 jira_services = services.jira_services.JiraServices(request.session["authorization"])
                 date_utils = services.date_utils.DateUtils()
@@ -100,8 +99,7 @@ class AccountAnalyticLine(models.Model):
             else:
                 raise exceptions.UserError(_("You isn't Jira's account"))
 
-        line = super(AccountAnalyticLine, self).write(vals)
-        return line
+        return super(AccountAnalyticLine, self).write(vals)
 
     @api.multi
     def unlink(self):
@@ -119,7 +117,7 @@ class AccountAnalyticLine(models.Model):
     @api.multi
     @job
     def update_data(self, login, token):
-        update_data.UpdateData().update_data(login, token)
+        UpdateData().update_data(login, token)
 
     @api.multi
     def add_timesheet(self):
