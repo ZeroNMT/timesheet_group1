@@ -103,20 +103,17 @@ class UpdateData():
                     'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
                     'date': date_utils.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"]),
                     'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
-                    'id_jira': workLog["id"],
-                    'not_update_jira': 'True'
+                    'id_jira': workLog["id"]
                 })
             else:
                 record = request.env["account.analytic.line"].sudo().browse(dic[int(workLog["id"])])
                 update_worklog = date_utils.convertString2Datetime(workLog["updated"])
                 if update_worklog != record.last_modified:
-                    record.sudo().write({
+                    record.sudo().with_context(not_update_jira=True).write({
                         'name': workLog["comment"],
                         'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
                         'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
                         'date': date_utils.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"]),
-                        'not_update_jira': 'True'
-
                     })
                     request.env.cr.commit()
                 del dic[int(workLog["id"])]
@@ -125,5 +122,5 @@ class UpdateData():
             request.env["account.analytic.line"].sudo().browse(value).unlink()
 
         for item in create_lst:
-            request.env["account.analytic.line"].sudo().create(item)
+            request.env["account.analytic.line"].sudo().with_context(not_update_jira=True).create(item)
 
