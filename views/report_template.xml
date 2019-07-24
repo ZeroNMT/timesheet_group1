@@ -52,7 +52,9 @@
 
     <template id="search_template_timesheet" inherit_id="account_reports.search_template" primary="True">
         <xpath expr="//div[hasclass('o_account_reports_filter_date')]" position="before">
-            <t t-call="timesheet_group1.search_template_employees"/>
+            <div class="btn-group o_dropdown o_account_reports_filter_employees" t-if="options.get('employees') != None">
+                <t t-call="timesheet_group1.search_template_employees"/>
+            </div>
         </xpath>
     </template>
 
