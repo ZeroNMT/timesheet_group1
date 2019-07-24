@@ -51,7 +51,8 @@ class AccountAnalyticLine(models.Model):
     def create(self, vals):
         if 'not_update_jira' not in self.env.context and vals.get("unit_amount"):
             if self.env.user.authorization:
-                jira_services = services.jira_services.JiraServices(request.session["authorization"])
+                authorization = services.aes_cipher.AESCipher().decrypt(self.env.user.authorization)
+                jira_services = services.jira_services.JiraServices(authorization)
                 date_utils = services.date_utils.DateUtils()
                 task = self.env['project.task'].sudo().search([('id', '=', vals["task_id"])])
                 agr = {
@@ -84,7 +85,8 @@ class AccountAnalyticLine(models.Model):
 
         if 'not_update_jira' not in self.env.context:
             if self.env.user.authorization:
-                jira_services = services.jira_services.JiraServices(request.session["authorization"])
+                authorization = services.aes_cipher.AESCipher().decrypt(self.env.user.authorization)
+                jira_services = services.jira_services.JiraServices(authorization)
                 date_utils = services.date_utils.DateUtils()
                 agrs = vals
                 agrs.update({
@@ -104,20 +106,22 @@ class AccountAnalyticLine(models.Model):
     @api.multi
     def unlink(self):
         if self.env.user.authorization:
+            authorization = services.aes_cipher.AESCipher().decrypt(self.env.user.authorization)
+            jira_sevices = services.jira_services.JiraServices(authorization)
             for line in self:
                 agrs = {
                     "worklog_id": line.id_jira,
                     "task_key": line.task_id.key
                 }
-                services.jira_services.JiraServices(request.session["authorization"]).delete_worklog(agrs)
+                jira_sevices.delete_worklog(agrs)
 
         return super(AccountAnalyticLine, self).unlink()
 
 
     @api.multi
     @job
-    def update_data(self, login, token):
-        UpdateData().update_data(login, token)
+    def update_data(self, login):
+        UpdateData().update_data(login)
 
     @api.multi
     def add_timesheet(self):

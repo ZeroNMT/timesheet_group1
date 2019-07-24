@@ -6,9 +6,9 @@ from Crypto.Cipher import AES
 
 class AESCipher():
 
-    def __init__(self, key):
+    def __init__(self):
         self.bs = 32
-        self.key = hashlib.sha256(key.encode()).digest()
+        self.key = hashlib.sha256("minhtham0zero@gmail.com".encode()).digest()
 
     def encrypt(self, raw):
         raw = self._pad(raw)
