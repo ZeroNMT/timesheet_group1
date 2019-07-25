@@ -55,8 +55,37 @@
             <div class="btn-group o_dropdown o_account_reports_filter_employees" t-if="options.get('employees') != None">
                 <t t-call="timesheet_group1.search_template_employees"/>
             </div>
+            <div class="btn-group o_dropdown o_account_reports_filter_projects" t-if="options.get('projects') != None">
+                <t t-call="timesheet_group1.search_template_projects"/>
+            </div>
         </xpath>
     </template>
 
+    <template id="search_template_projects">
+        <a type="button" class="dropdown-toggle" data-toggle="dropdown">
+            <span class="fa fa-book"/>
+            projects:
+            <t t-set="selected_projects" t-value="', '.join(project.get('code') for project in options['projects'] if project.get('selected'))"/>
+
+            <t t-if="selected_projects">
+                <t t-esc="selected_projects"/>
+            </t>
+            <t t-else="">
+                All
+            </t>
+        </a>
+        <div class="dropdown-menu o_filters_menu" role="menu">
+            <t t-foreach="options['projects']" t-as="j">
+                <t t-if="j.get('id') == 'divider'">
+                    <div role="separator" class="dropdown-divider"/>
+                    <b role="menuitem" class="ml4 dropdown-item-text"><t t-esc="j.get('name')"/></b>
+                    <div role="separator" class="dropdown-divider"/>
+                </t>
+                <t t-if="j.get('id') != 'divider'">
+                    <a role="menuitem" class="dropdown-item js_account_report_choice_filter" t-att-title="j.get('name')+ '-' + j.get('code')" t-att-data-id="j.get('id')" data-filter="projects"><t t-esc="j.get('name')"/></a>
+                </t>
+            </t>
+        </div>
+    </template>
 </data>
 </odoo>

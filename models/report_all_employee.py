@@ -6,6 +6,7 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
     _inherit = 'account.report'
     _description = 'Timesheet All Employee  Report'
     filter_date = {'date_from': '', 'date_to': '', 'filter': 'this_month'}
+    filter_employees = True
     filter_all_entries = False
 
     def _get_report_name(self):
@@ -15,22 +16,72 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
         columns = [{'name': 'Employee'}, {'name': 'Unit amount'}]
         return columns
 
+    def get_all_employee(self,date_from,date_to,list_employee):
+        sql_query_employee = """
+            SELECT
+                   "hr_employee".name,"hr_employee".id,
+                    sum("account_analytic_line".unit_amount)
+            FROM hr_employee LEFT JOIN account_analytic_line
+            ON "hr_employee".id = "account_analytic_line".employee_id
+            WHERE "hr_employee".is_novobi IS TRUE AND to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s' AND "hr_employee".name IN %s
+            GROUP BY "hr_employee".id
+        """
+        self.env.cr.execute(sql_query_employee % (date_from,date_to, list_employee))
+        results_employee = self.env.cr.dictfetchall()
+        return results_employee
+
+    def get_employee_with_id(self,line_id,date_from,date_to):
+        sql_query_employee_in_line = """
+            SELECT
+               "hr_employee".name,"hr_employee".id,
+                sum("account_analytic_line".unit_amount)
+            FROM hr_employee LEFT JOIN account_analytic_line
+            ON "hr_employee".id = %s AND "hr_employee".id = "account_analytic_line".employee_id
+            WHERE "account_analytic_line".id_jira IS NOT NULL AND to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
+            GROUP BY "hr_employee".id
+        """
+        sql_query_employee_in_line = sql_query_employee_in_line % (line_id,date_from,date_to)
+        self.env.cr.execute(sql_query_employee_in_line)
+        results_employee_in_line = self.env.cr.dictfetchall()
+        return results_employee_in_line
+
+    def get_all_project_of_employee(self,line_id,date_from,date_to):
+        sql_query_project = """
+            SELECT
+                 "project_project".key, "project_project".name,sum("account_analytic_line".unit_amount), "project_project".id
+            FROM project_project LEFT JOIN account_analytic_line
+            ON "account_analytic_line".employee_id = %s AND "account_analytic_line".project_id = "project_project".id
+            WHERE to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
+            GROUP BY "project_project".id
+        """
+        sql_query_project = sql_query_project % (line_id,date_from,date_to)
+        self.env.cr.execute(sql_query_project)
+        result_projects = self.env.cr.dictfetchall()
+        return result_projects
+
+    def get_list_name_employee(self,empployees_table):
+        list_name_employee = []
+        all_employee = []
+        for e in empployees_table:
+            if e['selected']:
+                list_name_employee.append(e['name'])
+            all_employee.append(e['name'])
+
+        list_name_employee = list_name_employee if len(list_name_employee) > 0 else all_employee
+        list_name_employee = str(list_name_employee).replace("[","(")
+        list_name_employee = list_name_employee.replace("]",")")
+        return list_name_employee
+
     def _get_lines(self, options, line_id=None):
         lines = []
         comparison_table = options.get('date')
         context = self.env.context
+        empployees_table = options.get('employees')
+        list_name_employee = self.get_list_name_employee(empployees_table)
+        print(list_name_employee)
         if (context.get('print_mode') is None):
-            sql_query_employee = """
-                SELECT
-                       "hr_employee".name,"hr_employee".id,
-                        sum("account_analytic_line".unit_amount)
-                FROM hr_employee LEFT JOIN account_analytic_line
-                ON "hr_employee".id = "account_analytic_line".employee_id
-                WHERE "account_analytic_line".id_jira IS NOT NULL AND to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
-                GROUP BY "hr_employee".id
-            """
-            self.env.cr.execute(sql_query_employee % (comparison_table['date_from'],comparison_table['date_to']))
-            results_employee = self.env.cr.dictfetchall()
+            results_employee = self.get_all_employee(comparison_table['date_from'],comparison_table['date_to'],list_name_employee)
+            print(results_employee)
             total_all_project = 0.00
             if line_id is None:
                 for employee in results_employee:
@@ -45,31 +96,8 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
                     })
 
             if line_id:
-                sql_query_employee_in_line = """
-                    SELECT
-                       "hr_employee".name,"hr_employee".id,
-                        sum("account_analytic_line".unit_amount)
-                    FROM hr_employee LEFT JOIN account_analytic_line
-                    ON "hr_employee".id = %s AND "hr_employee".id = "account_analytic_line".employee_id
-                    WHERE "account_analytic_line".id_jira IS NOT NULL AND to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
-                    GROUP BY "hr_employee".id
-                """
-                sql_query_employee_in_line = sql_query_employee_in_line % (line_id,comparison_table['date_from'],comparison_table['date_to'])
-                self.env.cr.execute(sql_query_employee_in_line)
-                results_employee_in_line = self.env.cr.dictfetchall()
-
-
-                sql_query_project = """
-                    SELECT
-                         "project_project".key, "project_project".name,sum("account_analytic_line".unit_amount), "project_project".id
-                    FROM project_project LEFT JOIN account_analytic_line
-                    ON "account_analytic_line".employee_id = %s AND "account_analytic_line".project_id = "project_project".id
-                    WHERE to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
-                    GROUP BY "project_project".id
-                """
-                sql_query_project = sql_query_project % (line_id,comparison_table['date_from'],comparison_table['date_to'])
-                self.env.cr.execute(sql_query_project)
-                result_projects = self.env.cr.dictfetchall()
+                results_employee_in_line = self.get_employee_with_id(line_id,comparison_table['date_from'],comparison_table['date_to'])
+                result_projects = self.get_all_project_of_employee(line_id,comparison_table['date_from'],comparison_table['date_to'])
                 lines.append({
                     'id': line_id,
                     'name': results_employee_in_line[0]["name"],
@@ -105,17 +133,7 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
                     'columns': [{'name': self.covertFloatToTime(total_all_project)}]
                 })
         else:
-            sql_query_employee = """
-                            SELECT
-                                   "hr_employee".name,"hr_employee".id,
-                                    sum("account_analytic_line".unit_amount)
-                            FROM hr_employee LEFT JOIN account_analytic_line
-                            ON "hr_employee".id = "account_analytic_line".employee_id
-                            WHERE "account_analytic_line".id_jira IS NOT NULL AND to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
-                            GROUP BY "hr_employee".id
-                        """
-            self.env.cr.execute(sql_query_employee % (comparison_table['date_from'], comparison_table['date_to']))
-            results_employee = self.env.cr.dictfetchall()
+            results_employee = self.get_all_employee(comparison_table['date_from'],comparison_table['date_to'],list_name_employee)
             total_all_project = 0.00
             for employee in results_employee:
                 total_all_project += employee["sum"]
@@ -127,17 +145,7 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
                     'unfolded': True,
                     'columns': [{'name': self.covertFloatToTime(employee["sum"])}]
                 })
-                sql_query_project = """
-                    SELECT
-                         "project_project".key, "project_project".name,sum("account_analytic_line".unit_amount), "project_project".id
-                    FROM project_project LEFT JOIN account_analytic_line
-                    ON "account_analytic_line".employee_id = %s AND "account_analytic_line".project_id = "project_project".id
-                    WHERE to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
-                    GROUP BY "project_project".id
-                """
-                sql_query_project = sql_query_project % (str(employee["id"]),comparison_table['date_from'],comparison_table['date_to'])
-                self.env.cr.execute(sql_query_project)
-                result_projects = self.env.cr.dictfetchall()
+                result_projects = self.get_all_project_of_employee(str(employee["id"]),comparison_table['date_from'],comparison_table['date_to'])
                 total_projects = 0.00
                 for project in result_projects:
                     total_projects += 0.0 if project['sum'] is None else project['sum']
@@ -194,7 +202,7 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
 
     def _get_employees(self):
         employees = []
-        employees_read = self.env["hr.employee"].search([('isNovobi', '=',  True)])
+        employees_read = self.env["hr.employee"].search([('is_novobi', '=',  True)])
         for e in employees_read:
             employees.append({
                 'id': e.id,
