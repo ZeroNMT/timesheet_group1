@@ -43,7 +43,6 @@ odoo.define('timesheet_group1.GridRender', function (require) {
                 var state = this.model.get();
                 var cell = utils.into(state, cell_path);
                 var row = utils.into(state, row_path);
-                console.log(row)
                 var task_name = row.values.task_id[1];
                 var task_id = row.values.task_id[0];
                 //-------------------------------------------

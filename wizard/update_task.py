@@ -13,7 +13,7 @@ class Update(models.TransientModel):
         if not self.env.user["authorization"]:
             raise exceptions.UserError(_("You isn't Jira's account"))
         else:
-            request.env['account.analytic.line'].sudo().with_delay().update_data(self.env.user.login)
+            request.env['account.analytic.line'].sudo().with_delay().transform_data(self.env.user.login)
         return {
             'type': 'ir.actions.client',
             'tag': 'reload'

@@ -34,12 +34,12 @@ class Test(models.TransientModel):
         return lst
 
     @api.multi
-    def button_send(self,**arg):
+    def button_send(self, **arg):
         self.ensure_one()
         #Add worklog in Odoo
         date_utils = services.date_utils.DateUtils()
         employee = self.env['hr.employee'].sudo().search([('work_email', '=', self.env.user["login"])])
-        datetime = date_utils.convertToLocalTZ(self.date, self.env.user.tz).replace(tzinfo=pytz.timezone(self.time_zone))
+        datetime = date_utils.convertToLocalTZ(self.date, self.env.user.tz).replace(tzinfo=pytz.timezone(self.env.user.tz))
         if(self.time_spent == 0.0):
             raise exceptions.UserError(_("Please enter Unit amout > 0"))
         self.env['account.analytic.line'].create({

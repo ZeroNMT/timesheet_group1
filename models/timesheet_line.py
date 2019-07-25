@@ -41,13 +41,6 @@ class AccountAnalyticLine(models.Model):
                 })
 
     @api.model
-    def update_timesheet_trigger(self):
-        if not request.env.user["authorization"]:
-            raise exceptions.UserError(_("You isn't Jira's account"))
-        else:
-            UpdateData().update_data(self.env.user.login)
-
-    @api.model
     def create(self, vals):
         if 'not_update_jira' not in self.env.context and vals.get("unit_amount"):
             if self.env.user.authorization:
@@ -72,11 +65,7 @@ class AccountAnalyticLine(models.Model):
         if vals.get('project_id') and not vals.get('name'):
             vals['name'] = _('/')
 
-        line = super(AccountAnalyticLine, self).create(vals)
-        # A line created before validation limit will be automatically validated
-        if not self.user_has_groups('hr_timesheet.group_timesheet_manager') and line.is_timesheet and line.validated:
-            raise AccessError(_('Only a Timesheets Manager is allowed to create an entry older than the validation limit.'))
-        return line
+        return super(AccountAnalyticLine, self).create(vals)
 
     @api.multi
     def write(self, vals):
@@ -120,8 +109,20 @@ class AccountAnalyticLine(models.Model):
 
     @api.multi
     @job
-    def update_data(self, login):
-        UpdateData().update_data(login)
+    def transform_data(self, login):
+        UpdateData(login).transform_data()
+
+    @api.multi
+    @job
+    def update_data(self, login, data):
+        UpdateData(login).update_data(data)
+
+    @api.model
+    def update_timesheet_trigger(self):
+        if not request.env.user["authorization"]:
+            raise exceptions.UserError(_("You isn't Jira's account"))
+        else:
+            UpdateData(self.env.user.login).transform_data()
 
     @api.multi
     def add_timesheet(self):
