@@ -78,10 +78,8 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
         context = self.env.context
         empployees_table = options.get('employees')
         list_name_employee = self.get_list_name_employee(empployees_table)
-        print(list_name_employee)
         if (context.get('print_mode') is None):
             results_employee = self.get_all_employee(comparison_table['date_from'],comparison_table['date_to'],list_name_employee)
-            print(results_employee)
             total_all_project = 0.00
             if line_id is None:
                 for employee in results_employee:
