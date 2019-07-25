@@ -45,7 +45,7 @@ class AccountAnalyticLine(models.Model):
         if not request.env.user["authorization"]:
             raise exceptions.UserError(_("You isn't Jira's account"))
         else:
-            UpdateData().update_data(self.env.user.login)
+            UpdateData(self.env.user.login).update_data()
 
     @api.model
     def create(self, vals):
@@ -121,7 +121,7 @@ class AccountAnalyticLine(models.Model):
     @api.multi
     @job
     def update_data(self, login):
-        UpdateData().update_data(login)
+        UpdateData(login).update_data()
 
     @api.multi
     def add_timesheet(self):
