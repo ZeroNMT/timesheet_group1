@@ -65,11 +65,7 @@ class AccountAnalyticLine(models.Model):
         if vals.get('project_id') and not vals.get('name'):
             vals['name'] = _('/')
 
-        line = super(AccountAnalyticLine, self).create(vals)
-        # A line created before validation limit will be automatically validated
-        if not self.user_has_groups('hr_timesheet.group_timesheet_manager') and line.is_timesheet and line.validated:
-            raise AccessError(_('Only a Timesheets Manager is allowed to create an entry older than the validation limit.'))
-        return line
+        return super(AccountAnalyticLine, self).create(vals)
 
     @api.multi
     def write(self, vals):
