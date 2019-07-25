@@ -4,6 +4,7 @@
 from odoo import _,api,fields, models, exceptions
 from .. import manage_data
 from odoo.http import request
+from ..services.aes_cipher import AESCipher
 
 class Update(models.TransientModel):
     _name = 'update.task'
@@ -12,8 +13,7 @@ class Update(models.TransientModel):
         if not self.env.user["authorization"]:
             raise exceptions.UserError(_("You isn't Jira's account"))
         else:
-            request.env['account.analytic.line'].sudo().with_delay().update_data(self.env.user.login,
-                                                                                 request.session["authorization"])
+            request.env['account.analytic.line'].sudo().with_delay().update_data(self.env.user.login)
         return {
             'type': 'ir.actions.client',
             'tag': 'reload'

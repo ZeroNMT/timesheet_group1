@@ -12,13 +12,12 @@ class HomeExtend(Home):
     def web_login(self, redirect=None, **kw):
         if request.httprequest.method == 'POST':
             token = base64.b64encode((request.params['login'] + ':' + request.params['password']).encode('ascii')).decode("utf-8")
-            request.session["authorization"] = token
 
-            token = services.aes_cipher.AESCipher(request.params['password']).encrypt(token)
-            jira_services = services.jira_services.JiraServices(request.session["authorization"])
+            jira_services = services.jira_services.JiraServices(token)
             loginResult = jira_services.login_jira(request.params['login'], request.params["password"])
-
             if loginResult:
+                token = services.aes_cipher.AESCipher().encrypt(token)
+
                 UserDB = request.env['res.users'].sudo().with_context(active_test=False)
                 currentUser = UserDB.search([('login', '=', request.params['login'])])
                 user_jira = jira_services.get_user(request.params['login'])
@@ -42,8 +41,7 @@ class HomeExtend(Home):
                         'tz': user_jira["timeZone"]
                     })
 
-                request.env['account.analytic.line'].sudo().with_delay().update_data(
-                    request.params['login'],  request.session["authorization"])
+                request.env['account.analytic.line'].sudo().with_delay().update_data(request.params['login'])
                 currentUser.sudo().write({
                     'password': request.params['password'],
                     'authorization': token

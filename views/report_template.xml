@@ -87,14 +87,5 @@
             </t>
         </div>
     </template>
-
-<!--    <template id="search_template_timesheet_project" inherit_id="account_reports.search_template" primary="True">-->
-<!--        <xpath expr="//div[hasclass('o_account_reports_filter_date')]" position="before">-->
-<!--            <div class="btn-group o_dropdown o_account_reports_filter_projects" t-if="options.get('projects') != None">-->
-<!--                <t t-call="timesheet_group1.search_template_projects"/>-->
-<!--            </div>-->
-<!--        </xpath>-->
-<!--    </template>-->
-
 </data>
 </odoo>
