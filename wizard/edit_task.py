@@ -9,16 +9,27 @@ class Test(models.TransientModel):
     _name = 'edit.task'
     date = fields.Datetime("Datetime")
     des = fields.Char("Description")
-    project_name = fields.Char(readonly=True)
+    project_name = fields.Char(readonly=True,compute="_compute_project")
     task_name = fields.Char(readonly=True)
     time_spent = fields.Float("Unit amount")
     task_id = fields.Integer()
-    project_id = fields.Integer()
+    project_id = fields.Integer(compute="_compute_project")
     time_zone = fields.Selection(selection=lambda self: self._compute_timezone(), string="Timezone",
                                     default=0, readonly=True)
 
+
+    @api.depends('task_id')
+    def _compute_project(self):
+        task = self.env["project.task"].sudo().search([("id","=",self.task_id)])
+        self.project_id = task["project_id"]
+        if self.task_id == 0:
+            self.project_name = "[False] Research & Development"
+        else:
+            project = self.env["project.project"].sudo().search([("id","=",self.project_id)])
+            project_name = "[" + project["key"] + "]" + " " + project["name"]
+            self.project_name = project_name
+
     def _compute_timezone(self):
-        # lst = [(x, x) for x in pytz.all_timezones]
         lst = [(0, self.env.user.tz)]
         return lst
 
