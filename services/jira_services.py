@@ -103,6 +103,43 @@ class JiraServices():
             print("get_all_issues_of_project", reponse, sep="\t")
             return None
 
+    def get_all_tickets(self):
+        startAt = 0
+        maxResults = 1000
+        allIssues = []
+        for i in range(2):
+            reponse = requests.post(
+                url=self.api_url + "/rest/api/2/search",
+                headers=self.header,
+                json={
+                    "startAt": startAt,
+                    "maxResults": maxResults,
+                    "fields": [
+                        "assignee",
+                        "status",
+                        "summary",
+                        "updated",
+                        'project'
+                    ]
+                }
+            )
+            if reponse.status_code == 200:
+                allIssues.extend(reponse.json()["issues"])
+                if reponse.json()["total"] > (maxResults - startAt):
+                    startAt = maxResults
+                    maxResults = reponse.json()["total"] - maxResults + 1
+                else:
+                    break
+            else:
+                break
+
+        if reponse.status_code == 200:
+            print("Success !!!")
+            return allIssues
+        else:
+            print("get_all_tickets", reponse, sep="\t")
+            return None
+
     def get_all_worklogs_of_issue(self, key_task):
         reponse = requests.get(
             url=self.api_url + "/rest/api/2/issue/%s/worklog" % key_task,

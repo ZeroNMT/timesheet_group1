@@ -2,7 +2,7 @@
 
 from odoo.tools import date_utils
 from odoo import fields
-import pytz  # pip3 install pytz
+import pytz
 import datetime as DT
 
 class  DateUtils():
