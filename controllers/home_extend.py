@@ -32,7 +32,7 @@ class HomeExtend(Home):
                         'active': True,
                         'employee_ids': [(0, 0, {'name': user_jira["displayName"],
                                                  'work_email': request.params['login'],
-                                                 'isNovobi': True})],
+                                                 'is_novobi': True})],
                         'tz': user_jira["timeZone"]
                     }
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
