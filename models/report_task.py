@@ -16,22 +16,7 @@ class TimesheetTaskReport(models.AbstractModel):
         columns = [{'name': 'Project'}, {'name': 'Unit amount'}]
         return columns
 
-    def _get_lines(self, options, line_id=None):
-        lines = []
-        context = self.env.context
-        comparison_table = options.get('date')
-        projects_table = options.get('projects')
-        list_name_project = []
-        all_project = []
-        for p in projects_table:
-            if p['selected']:
-                list_name_project.append(p['name'])
-            all_project.append(p['name'])
-
-        list_name_project = list_name_project if len(list_name_project) > 0 else all_project
-        list_name_project = str(list_name_project).replace("[","(")
-        list_name_project = list_name_project.replace("]",")")
-
+    def get_all_project(self,date_from,date_to,list_project):
         sql_query_project = """
             SELECT
                    "project_project".key, "project_project".name,
@@ -41,6 +26,26 @@ class TimesheetTaskReport(models.AbstractModel):
             WHERE to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s' AND "project_project".name IN %s
             GROUP BY "project_project".id
         """
+        self.env.cr.execute(sql_query_project % (date_from,date_to,list_project))
+        results_project = self.env.cr.dictfetchall()
+        return results_project
+
+    def get_project_with_id(self,line_id,date_from,date_to):
+        sql_query_project_in_line = """
+            SELECT
+                   "project_project".key, "project_project".name,
+                    sum("account_analytic_line".unit_amount), "project_project".id
+            FROM account_analytic_line LEFT JOIN project_project 
+            ON "project_project".id = %s AND "account_analytic_line".project_id = "project_project".id
+            WHERE "project_project".key IS NOT NULL AND to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
+            GROUP BY "project_project".id
+        """
+        sql_query_project_in_line = sql_query_project_in_line % (line_id,date_from,date_to)
+        self.env.cr.execute(sql_query_project_in_line)
+        results_project_in_line = self.env.cr.dictfetchall()
+        return results_project_in_line
+
+    def get_all_task_of_project(self,line_id,date_from,date_to):
         sql_query_task = """
             SELECT
                  "project_task".key, "project_task".name, 
@@ -51,18 +56,33 @@ class TimesheetTaskReport(models.AbstractModel):
             GROUP BY "project_task".id
             ORDER BY "project_task".key ASC 
         """
-        sql_query_project_in_line = """
-            SELECT
-                   "project_project".key, "project_project".name,
-                    sum("account_analytic_line".unit_amount), "project_project".id
-            FROM account_analytic_line LEFT JOIN project_project 
-            ON "project_project".id = %s AND "account_analytic_line".project_id = "project_project".id
-            WHERE "project_project".key IS NOT NULL AND to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
-            GROUP BY "project_project".id
-        """
+        sql_query_task = sql_query_task % (line_id,date_from,date_to)
+        self.env.cr.execute(sql_query_task)
+        results_task = self.env.cr.dictfetchall()
+        return results_task
+
+    def get_list_name_project(self,projects_table):
+        list_name_project = []
+        all_project = []
+        for p in projects_table:
+            if p['selected']:
+                list_name_project.append(p['name'])
+            all_project.append(p['name'])
+
+        list_name_project = list_name_project if len(list_name_project) > 0 else all_project
+        list_name_project = str(list_name_project).replace("[","(")
+        list_name_project = list_name_project.replace("]",")")
+        return list_name_project
+
+    def _get_lines(self, options, line_id=None):
+        lines = []
+        context = self.env.context
+        comparison_table = options.get('date')
+        projects_table = options.get('projects')
+        list_name_project = self.get_list_name_project(projects_table)
+
         if(context.get('print_mode') is None):
-            self.env.cr.execute(sql_query_project % (comparison_table['date_from'],comparison_table['date_to'],list_name_project))
-            results_project = self.env.cr.dictfetchall()
+            results_project = self.get_all_project(comparison_table['date_from'],comparison_table['date_to'],list_name_project)
             total_all_project = 0.00
             if line_id is None:
                 for project in results_project:
@@ -78,13 +98,8 @@ class TimesheetTaskReport(models.AbstractModel):
                         })
 
             if line_id:
-                sql_query_project_in_line = sql_query_project_in_line % (line_id,comparison_table['date_from'],comparison_table['date_to'])
-                self.env.cr.execute(sql_query_project_in_line)
-                results_project_in_line = self.env.cr.dictfetchall()
-
-                sql_query_task = sql_query_task % (line_id,comparison_table['date_from'],comparison_table['date_to'])
-                self.env.cr.execute(sql_query_task)
-                results_task = self.env.cr.dictfetchall()
+                results_project_in_line = self.get_project_with_id(line_id,comparison_table['date_from'],comparison_table['date_to'])
+                results_task = self.get_all_task_of_project(line_id,comparison_table['date_from'],comparison_table['date_to'])
 
                 lines.append({
                     'id': line_id,
@@ -123,8 +138,7 @@ class TimesheetTaskReport(models.AbstractModel):
                     'columns': [{'name': self.covertFloatToTime(total_all_project)}]
                 })
         else:
-            self.env.cr.execute(sql_query_project % (comparison_table['date_from'],comparison_table['date_to'],list_name_project))
-            results_project = self.env.cr.dictfetchall()
+            results_project = self.get_all_project(comparison_table['date_from'],comparison_table['date_to'],list_name_project)
             total_all_project = 0.00
             for project in results_project:
                 if project["key"]:
@@ -137,9 +151,7 @@ class TimesheetTaskReport(models.AbstractModel):
                         'unfolded': True,
                         'columns': [{'name': self.covertFloatToTime(project["sum"])}]
                     })
-                    sql_query_task = sql_query_task % (str(project["id"]),comparison_table['date_from'], comparison_table['date_to'])
-                    self.env.cr.execute(sql_query_task)
-                    results_task = self.env.cr.dictfetchall()
+                    results_task = self.get_all_task_of_project(str(project["id"]),comparison_table['date_from'], comparison_table['date_to'])
                     total_tasks = 0.00
                     for task in results_task:
                         if task["key"]:
