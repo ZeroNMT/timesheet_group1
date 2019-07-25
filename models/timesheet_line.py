@@ -41,13 +41,6 @@ class AccountAnalyticLine(models.Model):
                 })
 
     @api.model
-    def update_timesheet_trigger(self):
-        if not request.env.user["authorization"]:
-            raise exceptions.UserError(_("You isn't Jira's account"))
-        else:
-            UpdateData(self.env.user.login).update_data()
-
-    @api.model
     def create(self, vals):
         if 'not_update_jira' not in self.env.context and vals.get("unit_amount"):
             if self.env.user.authorization:
@@ -120,8 +113,20 @@ class AccountAnalyticLine(models.Model):
 
     @api.multi
     @job
-    def update_data(self, login):
-        UpdateData(login).update_data()
+    def transform_data(self, login):
+        UpdateData(login).transform_data()
+
+    @api.multi
+    @job
+    def update_data(self, login, data):
+        UpdateData(login).update_data(data)
+
+    @api.model
+    def update_timesheet_trigger(self):
+        if not request.env.user["authorization"]:
+            raise exceptions.UserError(_("You isn't Jira's account"))
+        else:
+            UpdateData(self.env.user.login).transform_data()
 
     @api.multi
     def add_timesheet(self):

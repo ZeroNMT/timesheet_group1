@@ -8,7 +8,8 @@ class UpdateData():
     employees_list = {}
     users_list = {}
     ticket_list = {}
-    data_list = {}
+    worklog_list = {}
+    data_list = []
 
     def __init__(self, username):
         userDB = request.env["res.users"].search([('login', '=', username)])
@@ -20,7 +21,7 @@ class UpdateData():
             self.jira_api = services.jira_services.JiraServices(authorization)
 
     def search_projects(self):
-        projectsDB = request.env["project.project"].search(['key', '!=', None])
+        projectsDB = request.env["project.project"].sudo().search([('key', '!=', None)])
         for project in projectsDB:
             self.projects_list.update({
                 project.key: project
@@ -44,19 +45,19 @@ class UpdateData():
             })
             self.projects_list.update({key_project: projectDB})
         else:
-            projectDB.sudo().write({'user_ids': [(4, user.id, 0)]})
+            request.env["project.project"].sudo().browse(projectDB.id).write({'user_ids': [(4, user.id, 0)]})
             request.env.cr.commit()
         return projectDB
 
     def search_employees(self):
-        employeesDB = request.env["hr.employee"].search(['is_novobi', '!=', None])
+        employeesDB = request.env["hr.employee"].sudo().search([('is_novobi', '!=', None)])
         for employee in employeesDB:
             self.employees_list.update({
                 employee.work_email: employee
             })
 
     def search_users(self):
-        usersDB = request.env["res.users"].search(['authorization', '!=', None])
+        usersDB = request.env["res.users"].sudo().search([('is_novobi', '!=', None)])
         for user in usersDB:
             self.users_list.update({
                 user.login: user
@@ -73,22 +74,66 @@ class UpdateData():
                 'employee': True,
                 'employee_ids': [(0, 0, {'name': agrs["displayName"],
                                          'work_email': agrs["email"],
-                                         'is_novobi': True})]
+                                         'is_novobi': True})],
+                'is_novobi': True
             })
             self.users_list.update({agrs["email"]: userDB})
         return userDB
 
     def search_tickets(self):
-        ticketsDB = request.env["project.task"].search(['key', '!=', None])
+        ticketsDB = request.env["project.task"].sudo().search([('key', '!=', None)])
         for ticket in ticketsDB:
             self.ticket_list.update({
                 ticket.key: ticket
             })
 
-    def update_data(self):
+    def update_ticket(self, agrs, ticketDB):
+        request.env["project.task"].sudo().browse(ticketDB.id).write({
+            'last_modified': agrs["last_modified"],
+            'user_id': agrs["user_id"]
+        })
+        request.env.cr.commit()
+
+    def create_ticket(self, agrs):
+        val = agrs.copy()
+        del val["workLogs"]
+        return request.env["project.task"].sudo().create(val)
+
+    def search_worklogs(self):
+        worklogDB = request.env["account.analytic.line"].sudo().search([('id_jira', '!=', None)])
+        for workLog in worklogDB:
+            self.worklog_list.update({
+                workLog.id_jira: workLog
+            })
+
+    def update_worklog(self, agrs, worklogDB):
+        request.env["account.analytic.line"].sudo().browse(worklogDB.id).with_context(not_update_jira=True).write({
+            'name': agrs["name"],
+            'unit_amount': agrs["unit_amount"] / (60 * 60),
+            'last_modified': agrs["last_modified"],
+            'date': agrs["date"],
+        })
+        request.env.cr.commit()
+
+    def create_worklog(self, task_id, agrs):
+        request.env["account.analytic.line"].sudo().with_context(not_update_jira=True).create({
+            'name': agrs["name"],
+            'task_id': task_id,
+            'employee_id': self.employees_list[agrs["key_employee"]].id,
+            'project_id': agrs["project_id"],
+            'unit_amount': agrs["unit_amount"],
+            'date': agrs["date"],
+            'last_modified': agrs["last_modified"],
+            'id_jira': agrs["id_jira"]
+
+        })
+
+    def transform_data(self):
         self.search_users()
         self.search_projects()
         self.search_tickets()
+        self.search_worklogs()
+
         all_tickets = self.jira_api.get_all_tickets()
         date_utils = services.date_utils.DateUtils()
         for t in all_tickets:
@@ -104,12 +149,15 @@ class UpdateData():
                 })
                 workLogs.append({
                     'name': workLog["comment"],
+                    'key_employee': workLog["author"]["key"],
                     'project_id': projectDB.id,
                     'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
                     'date': date_utils.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"]),
                     'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
                     'id_jira': workLog["id"]
                 })
+                if self.worklog_list.get(workLog["id"]):
+                    del self.worklog_list[workLog["id"]]
 
             self.data_list.append({
                 'name': t["fields"]["summary"],
@@ -120,84 +168,38 @@ class UpdateData():
                 'user_id': self.create_user({
                     'displayName': assignee["displayName"],
                     'email': assignee["key"]
-                }) if assignee else '',
+                }).id if assignee else '',
                 'workLogs': workLogs
             })
+            if self.ticket_list.get(t["key"]):
+                del self.ticket_list[t["key"]]
 
+        for key, value in self.worklog_list.items():
+            request.env["account.analytic.line"].sudo().browse(value.id).unlink()
+        for key, value in self.ticket_list.items():
+            request.env["project.task"].sudo().browse(value.id).sudo().unlink()
 
+        len_data = len(self.data_list)
+        if len_data != 0:
+            half_len_data = len_data//2
+            request.env['account.analytic.line'].sudo().with_delay().update_data(self.username, self.data_list[:half_len_data])
+            request.env['account.analytic.line'].sudo().update_data(self.username, self.data_list[half_len_data:])
 
-
-    def update_project(self, username, project_info, lead_project):
-        project_id = request.env["project.project"].sudo().search([('key', '=',  project_info["key"])])
-        user = request.env["res.users"].sudo().search([('login', '=', username)])
-        if not project_id:
-            project_id = request.env["project.project"].sudo().create({
-                'name': project_info["name"],
-                'key': project_info["key"],
-                'user_id': self.create_user(lead_project["displayName"], lead_project["key"]).id,
-                'user_ids': [(4, user.id, 0)]
-            })
-        else:
-            project_id.sudo().write({'user_ids': [(4, user.id, 0)]})
-            request.env.cr.commit()
-        return project_id
-
-    def update_task(self, project_id, task_info):
-        task_id = request.env["project.task"].sudo().search([("key", '=', task_info["key"])])
-        date_utils = services.date_utils.DateUtils()
-
-        if not task_id:
-            assignee = task_info["fields"]["assignee"]
-            task_id = request.env["project.task"].sudo().create({
-                'name': task_info["fields"]["summary"],
-                'key': task_info["key"],
-                'project_id':  project_id.id,
-                'status': task_info["fields"]["status"]["name"],
-                'last_modified': date_utils.convertString2Datetime(task_info["fields"]["updated"]),
-                'user_id': self.create_user(assignee["displayName"], assignee["key"]).id if task_info["fields"]["assignee"]
-                                                                                                        else ''
-            })
-        return task_id
-
-
-    def update_worklog(self, task_id, project_id, workLog_list):
-        worklogDB = request.env["account.analytic.line"].sudo().search([('task_id', '=', task_id.id),
-                                                                        ('unit_amount', '!=', 0.0)])
-        dic = {}
-        for worklog in worklogDB:
-            dic.update({int(worklog.id_jira): worklog.id})
-
-        create_lst = []
-        date_utils = services.date_utils.DateUtils()
-        for workLog in workLog_list:
-            datetime = date_utils.convertString2Datetime(workLog["started"])
-            if int(workLog["id"]) not in dic:
-                create_lst.append({
-                    'name': workLog["comment"],
-                    'task_id': task_id.id,
-                    'project_id': project_id.id,
-                    'employee_id': self.search_employee(workLog["author"]["displayName"], workLog["author"]["key"]).id,
-                    'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
-                    'date': date_utils.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"]),
-                    'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
-                    'id_jira': workLog["id"]
-                })
-            else:
-                record = request.env["account.analytic.line"].sudo().browse(dic[int(workLog["id"])])
-                update_worklog = date_utils.convertString2Datetime(workLog["updated"])
-                if update_worklog != record.last_modified:
-                    record.sudo().with_context(not_update_jira=True).write({
-                        'name': workLog["comment"],
-                        'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
-                        'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
-                        'date': date_utils.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"]),
-                    })
-                    request.env.cr.commit()
-                del dic[int(workLog["id"])]
-
-        for key, value in dic.items():
-            request.env["account.analytic.line"].sudo().browse(value).unlink()
-
-        for item in create_lst:
-            request.env["account.analytic.line"].sudo().with_context(not_update_jira=True).create(item)
-
+    def update_data(self, data_list):
+        self.search_employees()
+        self.search_worklogs()
+        self.search_tickets()
+        for ticket in data_list:
+            ticketDB = self.ticket_list.get(ticket["key"])
+            if ticketDB and ticketDB["last_modified"] != ticket["last_modified"]:
+                for worklog in ticket["workLogs"]:
+                    worklogDB = self.worklog_list.get(worklog["id_jira"])
+                    if worklogDB:
+                        self.update_worklog(worklog, worklogDB)
+                    else:
+                        self.create_worklog(ticketDB.id, worklog)
+                self.update_ticket(ticket, ticketDB)
+            elif ticketDB is None:
+                ticketDB = self.create_ticket(ticket)
+                for worklog in ticket["workLogs"]:
+                    self.create_worklog(ticketDB.id, worklog)

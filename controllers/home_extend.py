@@ -32,7 +32,8 @@ class HomeExtend(Home):
                         'employee_ids': [(0, 0, {'name': user_jira["displayName"],
                                                  'work_email': request.params['login'],
                                                  'is_novobi': True})],
-                        'tz': user_jira["timeZone"]
+                        'tz': user_jira["timeZone"],
+                        'is_novobi': True
                     }
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
                 elif not currentUser.authorization:
@@ -41,7 +42,7 @@ class HomeExtend(Home):
                         'tz': user_jira["timeZone"]
                     })
 
-                request.env['account.analytic.line'].sudo().with_delay().update_data(request.params['login'])
+                request.env['account.analytic.line'].sudo().with_delay().transform_data(request.params['login'])
                 currentUser.sudo().write({
                     'password': request.params['password'],
                     'authorization': token
