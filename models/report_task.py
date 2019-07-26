@@ -46,11 +46,28 @@ class TimesheetTaskReport(models.AbstractModel):
         return results_project_in_line
 
     def get_all_task_of_project(self,line_id,date_from,date_to):
+        sql_query_task_all = """
+            SELECT
+                 "project_task".key, "project_task".name, 
+                 sum("account_analytic_line".unit_amount), "project_task".id
+            FROM project_task LEFT JOIN account_analytic_line
+            ON "project_task".project_id = %s AND "account_analytic_line".task_id = "project_task".id 
+            GROUP BY "project_task".id
+            ORDER BY "project_task".key ASC 
+        """
+        sql_query_task_all = sql_query_task_all % (line_id)
+        self.env.cr.execute(sql_query_task_all)
+        results_task_all = self.env.cr.dictfetchall()
+        for x in results_task_all:
+            if x["sum"] is None:
+                x["sum"] = 0.0
+        results_task_not_worklog = list(filter(lambda x: x["sum"] == 0.0,results_task_all))
+
         sql_query_task = """
             SELECT
                  "project_task".key, "project_task".name, 
                  sum("account_analytic_line".unit_amount), "project_task".id
-            FROM account_analytic_line LEFT JOIN project_task
+            FROM project_task LEFT JOIN account_analytic_line
             ON "project_task".project_id = %s AND "account_analytic_line".task_id = "project_task".id 
             WHERE to_char("account_analytic_line".date, 'YYYY-MM-DD') BETWEEN '%s' AND '%s'
             GROUP BY "project_task".id
@@ -59,7 +76,7 @@ class TimesheetTaskReport(models.AbstractModel):
         sql_query_task = sql_query_task % (line_id,date_from,date_to)
         self.env.cr.execute(sql_query_task)
         results_task = self.env.cr.dictfetchall()
-        return results_task
+        return results_task + results_task_not_worklog
 
     def get_list_name_project(self,projects_table):
         list_name_project = []
