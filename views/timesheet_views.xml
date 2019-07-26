@@ -71,20 +71,23 @@
             <field name="task_id" string="Task Key" filter_domain="[('task_id.key', 'ilike', self)]"/>
             <field name="employee_id"/>
             <filter name="filter_my_timesheet"
-            string="My Timesheet"
-            domain="['|',('employee_id.user_id','=',uid),('unit_amount', '=' , 0.0)]"
+                string="My Timesheet"
+                domain="['|',('employee_id.user_id','=',uid),('unit_amount', '=' , 0.0)]"
             />
+            <separator />
             <filter name="filter_in_progress"
-            string="In Progress"
-            domain="[('task_id.status','!=','Done')]"
+                string="In Progress"
+                domain="[('task_id.status','!=','Done')]"
             />
+            <separator />
             <filter name="filter_done"
-            string="Done"
-            domain="[('task_id.status','=','Done')]"
+                string="Done"
+                domain="[('task_id.status','=','Done')]"
             />
+            <separator />
             <filter name="filter_unit_amount"
-            string="Unit Amount"
-            domain="[('unit_amount','>',0)]"
+                string="Unit Amount"
+                domain="[('unit_amount','>',0)]"
             />
         </search>
         </field>
