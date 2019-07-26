@@ -114,8 +114,8 @@ class AccountAnalyticLine(models.Model):
 
     @api.multi
     @job
-    def update_data(self, login, data):
-        UpdateData(login).update_data(data)
+    def update_data(self, login, key_project):
+        UpdateData(login).update_data(key_project)
 
     @api.model
     def update_timesheet_trigger(self):

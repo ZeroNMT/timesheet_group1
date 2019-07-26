@@ -72,7 +72,15 @@
             <field name="employee_id"/>
             <filter name="filter_my_timesheet"
             string="My Timesheet"
-            domain="[('employee_id.user_id','=',uid)]"
+            domain="['|',('employee_id.user_id','=',uid),('unit_amount', '=' , 0.0)]"
+            />
+            <filter name="filter_in_progress"
+            string="In Progress"
+            domain="[('task_id.status','!=','Done')]"
+            />
+            <filter name="filter_done"
+            string="Done"
+            domain="[('task_id.status','=','Done')]"
             />
             <filter name="filter_unit_amount"
             string="Unit Amount"
