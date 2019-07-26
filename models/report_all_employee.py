@@ -17,6 +17,21 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
         return columns
 
     def get_all_employee(self,date_from,date_to,list_employee):
+        sql_query_employee_all = """
+            SELECT
+                   "hr_employee".name,"hr_employee".id,
+                    sum("account_analytic_line".unit_amount)
+            FROM hr_employee LEFT JOIN account_analytic_line
+            ON "hr_employee".id = "account_analytic_line".employee_id
+            WHERE "hr_employee".is_novobi IS TRUE AND "hr_employee".name IN %s
+            GROUP BY "hr_employee".id
+        """
+        self.env.cr.execute(sql_query_employee_all % (list_employee))
+        results_employee_all = self.env.cr.dictfetchall()
+        for x in results_employee_all:
+            if x["sum"] is None:
+                x["sum"] = 0.0
+        results_employee_not_worklog = list(filter(lambda x: x["sum"] == 0.0,results_employee_all))
         sql_query_employee = """
             SELECT
                    "hr_employee".name,"hr_employee".id,
@@ -28,7 +43,7 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
         """
         self.env.cr.execute(sql_query_employee % (date_from,date_to, list_employee))
         results_employee = self.env.cr.dictfetchall()
-        return results_employee
+        return results_employee + results_employee_not_worklog
 
     def get_employee_with_id(self,line_id,date_from,date_to):
         sql_query_employee_in_line = """
@@ -84,14 +99,24 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
             if line_id is None:
                 for employee in results_employee:
                     total_all_project += employee["sum"]
-                    lines.append({
-                        'id': str(employee["id"]),
-                        'name': employee["name"],
-                        'level': 2,
-                        'unfoldable': True,
-                        'unfolded': False,
-                        'columns': [{'name': self.covertFloatToTime(employee["sum"])}]
-                    })
+                    if employee["sum"] > 0.0:
+                        lines.append({
+                            'id': str(employee["id"]),
+                            'name': employee["name"],
+                            'level': 2,
+                            'unfoldable': True,
+                            'unfolded': False,
+                            'columns': [{'name': self.covertFloatToTime(employee["sum"])}]
+                        })
+                    else:
+                        lines.append({
+                            'id': "not_worklog",
+                            'name': employee["name"],
+                            'level': 2,
+                            'unfoldable': False,
+                            'unfolded': False,
+                            'columns': [{'name': self.covertFloatToTime(employee["sum"])}]
+                        })
 
             if line_id:
                 results_employee_in_line = self.get_employee_with_id(line_id,comparison_table['date_from'],comparison_table['date_to'])
@@ -189,13 +214,28 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
         result = string_hour_integer + ":" + string_minute_integer
         return result
 
-
     def _build_options(self, previous_options=None):
         options = super(TimesheetAllEmployeeReport, self)._build_options(previous_options=previous_options)
         if not previous_options or not previous_options.get("employees"):
             options["employees"] = self._get_employees()
         else:
             options["employees"] = previous_options["employees"]
+            list_employees_is_selected = list(filter(lambda x: x["selected"] is True,options["employees"]))
+            list_employees_is_unselected = []
+            list_employees = self._get_employees()
+            for x in list_employees_is_selected:
+                list_employees_is_unselected.append(x.copy())
+            list_name = []
+            for x in list_employees:
+                list_name.append(x["name"])
+            for x in list_employees_is_unselected:
+                x["selected"] = False
+                if x in list_employees:
+                    list_employees.remove(x)
+            for x in list_employees_is_selected:
+                if x["name"] in list_name:
+                    list_employees.append(x)
+            options["employees"] = list_employees
         return options
 
     def _get_employees(self):
