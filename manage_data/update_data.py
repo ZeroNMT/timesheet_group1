@@ -1,6 +1,7 @@
 from odoo.http import request
 from odoo import exceptions,_
 from .. import services
+import datetime
 
 
 class UpdateData():
@@ -46,7 +47,6 @@ class UpdateData():
             self.projects_list.update({key_project: projectDB})
         else:
             request.env["project.project"].sudo().browse(projectDB.id).write({'user_ids': [(4, user.id, 0)]})
-            request.env.cr.commit()
         return projectDB
 
     def search_employees(self):
@@ -92,12 +92,9 @@ class UpdateData():
             'last_modified': agrs["last_modified"],
             'user_id': agrs["user_id"]
         })
-        request.env.cr.commit()
 
     def create_ticket(self, agrs):
-        val = agrs.copy()
-        del val["workLogs"]
-        return request.env["project.task"].sudo().create(val)
+        return request.env["project.task"].sudo().create(agrs)
 
     def search_worklogs(self):
         worklogDB = request.env["account.analytic.line"].sudo().search([('id_jira', '!=', None)])
@@ -113,93 +110,51 @@ class UpdateData():
             'last_modified': agrs["last_modified"],
             'date': agrs["date"],
         })
-        request.env.cr.commit()
 
-    def create_worklog(self, task_id, agrs):
+    def create_worklog(self, agrs):
         request.env["account.analytic.line"].sudo().with_context(not_update_jira=True).create({
             'name': agrs["name"],
-            'task_id': task_id,
-            'employee_id': self.employees_list[agrs["key_employee"]].id,
+            'task_id': agrs["task_id"],
+            'employee_id': agrs["employee_id"],
             'project_id': agrs["project_id"],
             'unit_amount': agrs["unit_amount"],
             'date': agrs["date"],
             'last_modified': agrs["last_modified"],
-            'id_jira': agrs["id_jira"]
-
+            'id_jira': agrs["id_jira"] if agrs.get("id_jira") else None
         })
 
     def transform_data(self):
+        all_projects = self.jira_api.get_all_project()
+        for project in all_projects:
+            request.env['account.analytic.line'].sudo().with_delay().update_data(self.username, project["key"])
+
+    def update_data(self, key_project):
         self.search_users()
-        self.search_projects()
         self.search_tickets()
-        self.search_worklogs()
 
-        all_tickets = self.jira_api.get_all_tickets()
         date_utils = services.date_utils.DateUtils()
-        for t in all_tickets:
-            projectDB = self.create_project(t["fields"]["project"]["key"])
+        projectDB = self.create_project(key_project)
+        tickets = self.jira_api.get_all_issues_of_project(key_project)
+        for t in tickets:
             assignee = t["fields"]["assignee"]
-            worklogs_jira = self.jira_api.get_all_worklogs_of_issue(t["key"])["worklogs"]
-            workLogs = []
-            for workLog in worklogs_jira:
-                datetime = date_utils.convertString2Datetime(workLog["started"])
-                self.create_user({
-                    'displayName': workLog["author"]["displayName"],
-                    'email': workLog["author"]["key"]
-                })
-                workLogs.append({
-                    'name': workLog["comment"],
-                    'key_employee': workLog["author"]["key"],
+            if self.ticket_list.get(t["key"]) is None:
+                ticketDB = self.create_ticket({
+                    'name': t["fields"]["summary"],
+                    'key': t["key"],
                     'project_id': projectDB.id,
-                    'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
-                    'date': date_utils.convertToLocalTZ(datetime, workLog["updateAuthor"]["timeZone"]),
-                    'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
-                    'id_jira': workLog["id"]
+                    'status': t["fields"]["status"]["name"],
+                    'last_modified': date_utils.convertString2Datetime(t["fields"]["updated"]),
+                    'user_id': self.create_user({
+                        'displayName': assignee["displayName"],
+                        'email': assignee["key"]
+                    }).id if assignee else '',
                 })
-                if self.worklog_list.get(workLog["id"]):
-                    del self.worklog_list[workLog["id"]]
-
-            self.data_list.append({
-                'name': t["fields"]["summary"],
-                'key': t["key"],
-                'project_id': projectDB.id,
-                'status': t["fields"]["status"]["name"],
-                'last_modified': date_utils.convertString2Datetime(t["fields"]["updated"]),
-                'user_id': self.create_user({
-                    'displayName': assignee["displayName"],
-                    'email': assignee["key"]
-                }).id if assignee else '',
-                'workLogs': workLogs
-            })
-            if self.ticket_list.get(t["key"]):
-                del self.ticket_list[t["key"]]
-
-        for key, value in self.worklog_list.items():
-            request.env["account.analytic.line"].sudo().browse(value.id).unlink()
-        for key, value in self.ticket_list.items():
-            request.env["project.task"].sudo().browse(value.id).sudo().unlink()
-
-        len_data = len(self.data_list)
-        if len_data != 0:
-            half_len_data = len_data//2
-            request.env['account.analytic.line'].sudo().with_delay().update_data(self.username, self.data_list[:half_len_data])
-            request.env['account.analytic.line'].sudo().update_data(self.username, self.data_list[half_len_data:])
-
-    def update_data(self, data_list):
-        self.search_employees()
-        self.search_worklogs()
-        self.search_tickets()
-        for ticket in data_list:
-            ticketDB = self.ticket_list.get(ticket["key"])
-            if ticketDB and ticketDB["last_modified"] != ticket["last_modified"]:
-                for worklog in ticket["workLogs"]:
-                    worklogDB = self.worklog_list.get(worklog["id_jira"])
-                    if worklogDB:
-                        self.update_worklog(worklog, worklogDB)
-                    else:
-                        self.create_worklog(ticketDB.id, worklog)
-                self.update_ticket(ticket, ticketDB)
-            elif ticketDB is None:
-                ticketDB = self.create_ticket(ticket)
-                for worklog in ticket["workLogs"]:
-                    self.create_worklog(ticketDB.id, worklog)
+                self.create_worklog({
+                        'name': '',
+                        'task_id': ticketDB.id,
+                        'employee_id': '',
+                        'project_id': projectDB.id,
+                        'unit_amount': 0.0,
+                        'date': datetime.datetime.now(),
+                        'last_modified': datetime.datetime.now(),
+                })

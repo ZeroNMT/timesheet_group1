@@ -20,11 +20,11 @@ class JiraServices():
                 'password': password,
             }
         )
+
+        print("login_jira", reponse, sep="\t")
         if reponse.status_code == 200:
-            print("Success !!!")
             return reponse.json()
         else:
-            print("login_jira", reponse, sep="\t")
             return None
 
     def get_all_tickets(self):
@@ -57,11 +57,10 @@ class JiraServices():
             else:
                 break
 
+        print("get_all_tickets", reponse, sep="\t")
         if reponse.status_code == 200:
-            print("Success !!!")
             return all_tickets
         else:
-            print("get_all_tickets", reponse, sep="\t")
             return None
 
     def get_user(self, username):
@@ -72,11 +71,11 @@ class JiraServices():
                 "username": username
             }
         )
+
+        print("get_user", reponse, sep="\t")
         if reponse.status_code == 200:
-            print("Success !!!")
             return reponse.json()
         else:
-            print("get_user", reponse, sep="\t")
             return None
 
     def get_all_project(self):
@@ -84,11 +83,11 @@ class JiraServices():
             url=self.api_url + "/rest/api/2/project",
             headers=self.header,
         )
+
+        print("get_all_project", reponse, sep="\t")
         if reponse.status_code == 200:
-            print("Success !!!")
             return reponse.json()
         else:
-            print("get_all_project", reponse, sep="\t")
             return None
 
     def get_project(self, key_project):
@@ -96,11 +95,11 @@ class JiraServices():
             url=self.api_url + "/rest/api/2/project/%s" % key_project,
             headers=self.header,
         )
+
+        print("get_project", reponse, sep="\t")
         if reponse.status_code == 200:
-            print("Success !!!")
             return reponse.json()
         else:
-            print("get_project", reponse, sep="\t")
             return None
 
     def get_all_issues_of_project(self, key_project):
@@ -133,11 +132,10 @@ class JiraServices():
             else:
                 break
 
+        print("get_all_issues_of_project", reponse, sep="\t")
         if reponse.status_code == 200:
-            print("Success !!!")
             return allIssues
         else:
-            print("get_all_issues_of_project", reponse, sep="\t")
             return None
 
 
@@ -147,11 +145,11 @@ class JiraServices():
             url=self.api_url + "/rest/api/2/issue/%s/worklog" % key_task,
             headers=self.header
         )
+
+        print("get_all_worklogs_of_issue", reponse, sep="\t")
         if reponse.status_code == 200:
-            print("Success !!!")
             return reponse.json()
         else:
-            print("get_all_worklogs_of_issue", reponse, sep="\t")
             return None
 
     def add_worklog(self, agr):
@@ -164,11 +162,11 @@ class JiraServices():
                 "timeSpentSeconds": int(agr["unit_amount"]*60*60)
             }
         )
+
+        print("add_worklog", reponse, sep="\t")
         if reponse.status_code == 201:
-            print("Success !!!")
             return reponse.json()
         else:
-            print("add_worklog", reponse, sep="\t")
             return None
 
     def update_worklog(self, agr):
@@ -184,11 +182,11 @@ class JiraServices():
             headers=self.header,
             data=json.dumps(data)
         )
+
+        print("update_worklog", reponse, sep="\t")
         if reponse.status_code == 200:
-            print("Success !!!")
             return reponse.json()
         else:
-            print("update_worklog", reponse, sep="\t")
             return None
 
     def delete_worklog(self, agr):
@@ -196,9 +194,9 @@ class JiraServices():
             url=self.api_url + "/rest/api/2/issue/%s/worklog/%s" % (agr["task_key"], agr["worklog_id"]),
             headers=self.header,
         )
+
+        print("delete_worklog", reponse, sep="\t")
         if reponse.status_code == 204:
-            print("Success !!!")
             return reponse
         else:
-            print("delete_worklog", reponse, sep="\t")
             return None
