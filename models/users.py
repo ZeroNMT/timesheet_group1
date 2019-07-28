@@ -7,6 +7,7 @@ class ResUsers(models.Model):
 
     authorization = fields.Char()
     is_novobi = fields.Boolean()
+    from_date = fields.Date()
 
     @api.model
     def create(self, vals):
