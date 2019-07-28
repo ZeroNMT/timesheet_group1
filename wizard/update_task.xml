@@ -6,7 +6,9 @@
     <field name="model">update.task</field>
     <field name="arch" type="xml">
       <form>
-        <field name="from_date_sync" />
+        <group>
+          <field name="from_date_sync" />
+        </group>
         <footer>
           <button type="object"
             name="update_timesheet"

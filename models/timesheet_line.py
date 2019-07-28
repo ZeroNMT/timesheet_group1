@@ -94,15 +94,16 @@ class AccountAnalyticLine(models.Model):
 
     @api.multi
     def unlink(self):
-        if self.env.user.authorization:
-            authorization = services.aes_cipher.AESCipher().decrypt(self.env.user.authorization)
-            jira_sevices = services.jira_services.JiraServices(authorization)
-            for line in self:
-                agrs = {
-                    "worklog_id": line.id_jira,
-                    "task_key": line.task_id.key
-                }
-                jira_sevices.delete_worklog(agrs)
+        if 'not_update_jira' not in self.env.context:
+            if self.env.user.authorization:
+                authorization = services.aes_cipher.AESCipher().decrypt(self.env.user.authorization)
+                jira_sevices = services.jira_services.JiraServices(authorization)
+                for line in self:
+                    agrs = {
+                        "worklog_id": line.id_jira,
+                        "task_key": line.task_id.key
+                    }
+                    jira_sevices.delete_worklog(agrs)
 
         return super(AccountAnalyticLine, self).unlink()
 
