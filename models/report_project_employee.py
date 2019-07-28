@@ -180,7 +180,6 @@ class TimesheetProjectEmployeeReport(models.AbstractModel):
 
         return lines
 
-
     def _get_templates(self):
         templates = super(TimesheetProjectEmployeeReport, self)._get_templates()
         templates['line_template'] = 'timesheet_group1.line_template_timesheet'

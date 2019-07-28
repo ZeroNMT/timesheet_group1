@@ -35,7 +35,7 @@ odoo.define('timesheet_group1.GridRender', function (require) {
             });
         },
         func: function(e){
-            if(this.displayName === "Jira's Timesheet") {
+            if(this.displayName === "My Jira's Timesheet") {
                 var ctx = _.extend({}, this.context);
                 var $target = $(e.target);
                 var cell_path = $target.parent().attr('data-path').split('.');

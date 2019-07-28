@@ -70,9 +70,27 @@
             <field name="project_id" string="Project Key" filter_domain="[('project_id.key', 'ilike', self)]"/>
             <field name="task_id" string="Task Key" filter_domain="[('task_id.key', 'ilike', self)]"/>
             <field name="employee_id"/>
+            <separator />
+            <filter name="filter_group_project"
+                string="Group By Prọject"
+                icon="terp-partner"
+                context="{'group_by':'project_id'}"
+            />
+            <separator />
+            <filter name="filter_group_task"
+                string="Group By Task"
+                icon="terp-partner"
+                context="{'group_by':'task_id'}"
+            />
+            <separator />
+            <filter name="filter_group_employee"
+                string="Group By Employee"
+                icon="terp-partner"
+                context="{'group_by':'employee_id'}"
+            />
             <filter name="filter_my_timesheet"
                 string="My Timesheet"
-                domain="['|',('employee_id.user_id','=',uid),('unit_amount', '=' , 0.0)]"
+                domain="['|',('employee_id.user_id','=',uid),('employee_id', '=' , None)]"
             />
             <separator />
             <filter name="filter_in_progress"

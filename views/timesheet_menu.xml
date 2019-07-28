@@ -4,26 +4,6 @@
               name = "Jira's Timesheet"
               web_icon="timesheet_group1,static/description/icon.png"
                 />
-
-
-    <record
-        model="ir.actions.act_window"
-        id="action_timesheet_views">
-        <field name="name">Jira's Timesheet</field>
-        <field name="res_model">account.analytic.line</field>
-        <field name="view_mode">grid,tree,graph</field>
-        <field name="view_ids" eval="[(5, 0, 0),
-            (0, 0, {'view_mode': 'grid', 'view_id' : ref('timesheet_line_grid')}),
-            (0, 0, {'view_mode': 'tree', 'view_id' : ref('timesheet_line_tree')}),
-            (0, 0, {'view_mode': 'graph', 'view_id' : ref('view_graph_timesheet')})]"/>
-        <field name="context">
-            {
-                "search_default_filter_my_timesheet": 1,
-                "search_default_filter_in_progress": 1
-            }
-        </field>
-    </record>
-
     <record
         model="ir.actions.client"
         id="action_timesheet_task_report">
@@ -48,11 +28,58 @@
         <field name="context" eval="{'model': 'timesheet.all.employee.report'}"/>
     </record>
 
+    <record
+        model="ir.actions.act_window"
+        id="action_my_timesheet_views">
+        <field name="name">My Jira's Timesheet</field>
+        <field name="res_model">account.analytic.line</field>
+        <field name="view_mode">grid</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'grid', 'view_id' : ref('timesheet_line_grid')})]"/>
+        <field name="context">
+            {
+                "search_default_filter_my_timesheet": 1,
+                "search_default_filter_in_progress": 1,
+            }
+        </field>
+    </record>
+
+    <record
+        model="ir.actions.act_window"
+        id="action_all_timesheet_views">
+        <field name="name">All Jira's Timesheets</field>
+        <field name="res_model">account.analytic.line</field>
+        <field name="view_mode">tree,graph</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id' : ref('timesheet_line_tree')}),
+            (0, 0, {'view_mode': 'graph', 'view_id' : ref('view_graph_timesheet')})]"/>
+        <field name="context">
+            {
+                "search_default_filter_group_project": 1,
+                "search_default_filter_group_task": 1,
+                "search_default_filter_group_employee": 1,
+                "search_default_filter_unit_amount": 1,
+            }
+        </field>
+    </record>
+
     <menuitem id = "menu_timesheet_views"
               name = "Timesheet"
-              action = "action_timesheet_views"
+              action = "action_my_timesheet_views"
               parent = "timesheet_group1.timesheet_menu"
             />
+
+    <menuitem id = "menu_my_timesheet_views"
+          name = "My Timesheet"
+          action = "action_my_timesheet_views"
+          parent = "timesheet_group1.menu_timesheet_views"
+        />
+
+    <menuitem id = "menu_all_timesheet_views"
+          name = "All Timesheet"
+          action = "action_all_timesheet_views"
+          parent = "timesheet_group1.menu_timesheet_views"
+        />
 
     <menuitem name="Reporting" id="menu_timesheet_report"
               parent="timesheet_menu"
