@@ -110,7 +110,7 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
                         })
                     else:
                         lines.append({
-                            'id': "not_worklog",
+                            'id': 'not_worklog',
                             'name': employee["name"],
                             'level': 2,
                             'unfoldable': False,
