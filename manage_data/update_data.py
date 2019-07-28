@@ -1,5 +1,5 @@
 from odoo.http import request
-from odoo import exceptions,_
+from odoo import exceptions,_, fields
 from .. import services
 import datetime
 
@@ -183,6 +183,7 @@ class UpdateData():
         self.search_users()
         self.search_tickets()
         self.search_projects()
+        from_datetime = fields.Datetime.to_datetime(fields.Date.to_string(datetime.date.today()) + ' 00:00:00')
 
         date_utils = services.date_utils.DateUtils()
         projectDB = self.create_project(key_project)
