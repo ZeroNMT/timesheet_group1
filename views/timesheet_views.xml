@@ -90,7 +90,12 @@
             />
             <filter name="filter_my_timesheet"
                 string="My Timesheet"
-                domain="['|',('employee_id.user_id','=',uid),('employee_id', '=' , None)]"
+                domain="[
+                '|',
+                    ('task_id.user_id','=',uid),
+                     '|',
+                        ('employee_id.user_id','=',uid),
+                        ('task_id.user_id', '=' , False)]"
             />
             <separator />
             <filter name="filter_in_progress"
