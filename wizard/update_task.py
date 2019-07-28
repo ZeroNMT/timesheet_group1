@@ -3,16 +3,22 @@
 
 from odoo import _,api,fields, models, exceptions
 from .. import manage_data
+import datetime
 from odoo.http import request
 from ..services.aes_cipher import AESCipher
 
 class Update(models.TransientModel):
     _name = 'update.task'
+    from_date_sync = fields.Date(string="Sync from date"
+                                 , default=datetime.date.today())
+
+
     @api.multi
     def update_timesheet(self,**arg):
         if not self.env.user["authorization"]:
             raise exceptions.UserError(_("You isn't Jira's account"))
         else:
+
             request.env['account.analytic.line'].sudo().with_delay().transform_data(self.env.user.login)
         return {
             'type': 'ir.actions.client',

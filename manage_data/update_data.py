@@ -90,7 +90,9 @@ class UpdateData():
     def update_ticket(self, agrs, ticketDB):
         request.env["project.task"].sudo().browse(ticketDB.id).write({
             'last_modified': agrs["last_modified"],
-            'user_id': agrs["user_id"]
+            'user_id': agrs["user_id"],
+            'name': agrs["name"],
+            'status': agrs["status"]
         })
 
     def create_ticket(self, agrs):
@@ -123,27 +125,34 @@ class UpdateData():
             'id_jira': agrs["id_jira"] if agrs.get("id_jira") else None
         })
 
-    def transform_data(self):
+    def transform_data(self, not_update):
         all_projects = self.jira_api.get_all_project()
-        for project in all_projects:
-            request.env['account.analytic.line'].sudo().with_delay().update_data(self.username, project["key"])
+        if not_update:
+            for project in all_projects:
+                request.env['account.analytic.line'].sudo().with_delay(priority=1).create_data(self.username, project["key"])
+        else:
+            for project in all_projects:
+                request.env['account.analytic.line'].sudo().with_delay().update_data(self.username, project["key"])
 
-    def update_data(self, key_project):
+    def create_data(self, key_project):
         self.search_users()
         self.search_tickets()
+        self.search_projects()
 
         date_utils = services.date_utils.DateUtils()
         projectDB = self.create_project(key_project)
         tickets = self.jira_api.get_all_issues_of_project(key_project)
         for t in tickets:
             assignee = t["fields"]["assignee"]
-            if self.ticket_list.get(t["key"]) is None:
+            updated_date = date_utils.convertString2Datetime(t["fields"]["updated"])
+            ticketDB = self.ticket_list.get(t["key"])
+            if ticketDB is None:
                 ticketDB = self.create_ticket({
                     'name': t["fields"]["summary"],
                     'key': t["key"],
                     'project_id': projectDB.id,
                     'status': t["fields"]["status"]["name"],
-                    'last_modified': date_utils.convertString2Datetime(t["fields"]["updated"]),
+                    'last_modified': updated_date,
                     'user_id': self.create_user({
                         'displayName': assignee["displayName"],
                         'email': assignee["key"]
@@ -158,3 +167,59 @@ class UpdateData():
                         'date': datetime.datetime.now(),
                         'last_modified': datetime.datetime.now(),
                 })
+            elif ticketDB.last_modified != updated_date:
+                agrs = {
+                    'name': t["fields"]["summary"],
+                    'status': t["fields"]["status"]["name"],
+                    'user_id': self.create_user({
+                        'displayName': assignee["displayName"],
+                        'email': assignee["key"]
+                    }).id if assignee else '',
+                    'last_modified': updated_date
+                }
+                self.update_ticket(agrs, ticketDB)
+
+    def update_data(self, key_project):
+        self.search_users()
+        self.search_tickets()
+        self.search_projects()
+
+        date_utils = services.date_utils.DateUtils()
+        projectDB = self.create_project(key_project)
+        tickets = self.jira_api.get_all_issues_of_project(key_project)
+        for t in tickets:
+            assignee = t["fields"]["assignee"]
+            updated_date = date_utils.convertString2Datetime(t["fields"]["updated"])
+            ticketDB = self.ticket_list.get(t["key"])
+            if ticketDB is None:
+                ticketDB = self.create_ticket({
+                    'name': t["fields"]["summary"],
+                    'key': t["key"],
+                    'project_id': projectDB.id,
+                    'status': t["fields"]["status"]["name"],
+                    'last_modified': updated_date,
+                    'user_id': self.create_user({
+                        'displayName': assignee["displayName"],
+                        'email': assignee["key"]
+                    }).id if assignee else '',
+                })
+                self.create_worklog({
+                        'name': '',
+                        'task_id': ticketDB.id,
+                        'employee_id': '',
+                        'project_id': projectDB.id,
+                        'unit_amount': 0.0,
+                        'date': datetime.datetime.now(),
+                        'last_modified': datetime.datetime.now(),
+                })
+            elif ticketDB.last_modified != updated_date:
+                agrs = {
+                    'name': t["fields"]["summary"],
+                    'status': t["fields"]["status"]["name"],
+                    'user_id': self.create_user({
+                        'displayName': assignee["displayName"],
+                        'email': assignee["key"]
+                    }).id if assignee else '',
+                    'last_modified': updated_date
+                }
+                self.update_ticket(agrs, ticketDB)

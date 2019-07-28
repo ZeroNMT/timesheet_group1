@@ -109,13 +109,18 @@ class AccountAnalyticLine(models.Model):
 
     @api.multi
     @job
-    def transform_data(self, login):
-        UpdateData(login).transform_data()
+    def transform_data(self, login, not_update=False):
+        UpdateData(login).transform_data(not_update)
 
     @api.multi
     @job
     def update_data(self, login, key_project):
         UpdateData(login).update_data(key_project)
+
+    @api.multi
+    @job
+    def create_data(self, login, key_project):
+        UpdateData(login).create_data(key_project)
 
     @api.model
     def update_timesheet_trigger(self):
