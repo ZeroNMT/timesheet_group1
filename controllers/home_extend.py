@@ -42,7 +42,7 @@ class HomeExtend(Home):
                         'tz': user_jira["timeZone"]
                     })
 
-                request.env['account.analytic.line'].sudo().with_delay(priority=0).transform_data(request.params['login'], True)
+                request.env['account.analytic.line'].sudo().with_delay(priority=0).transform_data(request.params['login'])
                 currentUser.sudo().write({
                     'password': request.params['password'],
                     'authorization': token

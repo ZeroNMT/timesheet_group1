@@ -94,26 +94,35 @@ class AccountAnalyticLine(models.Model):
 
     @api.multi
     def unlink(self):
-        if self.env.user.authorization:
-            authorization = services.aes_cipher.AESCipher().decrypt(self.env.user.authorization)
-            jira_sevices = services.jira_services.JiraServices(authorization)
-            for line in self:
-                agrs = {
-                    "worklog_id": line.id_jira,
-                    "task_key": line.task_id.key
-                }
-                jira_sevices.delete_worklog(agrs)
+        if 'not_update_jira' not in self.env.context:
+            if self.env.user.authorization:
+                authorization = services.aes_cipher.AESCipher().decrypt(self.env.user.authorization)
+                jira_sevices = services.jira_services.JiraServices(authorization)
+                for line in self:
+                    agrs = {
+                        "worklog_id": line.id_jira,
+                        "task_key": line.task_id.key
+                    }
+                    jira_sevices.delete_worklog(agrs)
 
         return super(AccountAnalyticLine, self).unlink()
 
 
     @api.multi
-    @job
+    @job(retry_pattern={
+        1: 15 * 60,
+        5: 20 * 60
+    })
     def transform_data(self, login, not_update=False):
         UpdateData(login).transform_data(not_update)
 
     @api.multi
-    @job
+    @job(retry_pattern={
+        1: 5 * 60,
+        5: 7 * 60,
+        10: 9 * 60,
+        15: 12 * 60 * 60
+    })
     def update_data(self, login, key_project):
         UpdateData(login).update_data(key_project)
 
