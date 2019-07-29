@@ -11,10 +11,6 @@ class Update(models.TransientModel):
     _name = 'update.task'
 
 
-    from_date_sync = fields.Date(string="Sync from date"
-                                 , default=datetime.date.today())
-
-
     @api.multi
     def update_timesheet(self,**arg):
         if not self.env.user["authorization"]:

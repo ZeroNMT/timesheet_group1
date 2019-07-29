@@ -180,17 +180,15 @@ class UpdateData():
                 }
                 self.update_ticket(agrs, ticketDB)
 
-
     def update_data(self, key_project):
         self.search_users()
         self.search_projects()
-
-        # from_datetime = fields.Datetime.to_datetime(fields.Date.to_string(datetime.date.today()) + ' 00:00:00')
-        from_datetime = fields.Datetime.to_datetime('2019-07-20 00:00:00')
-        date_utils = services.date_utils.DateUtils()
         projectDB = self.create_project(key_project)
         self.search_worklogs(projectDB.id)
         self.search_tickets(projectDB.id)
+
+        from_datetime = fields.Datetime.to_datetime('2019-07-20 00:00:00')
+        date_utils = services.date_utils.DateUtils()
         tickets = self.jira_api.get_all_issues_of_project(key_project)
         for t in tickets:
             assignee = t["fields"]["assignee"]
@@ -219,14 +217,23 @@ class UpdateData():
                                 'task_id': ticketDB.id,
                                 'employee_id': self.create_user({
                                     'displayName': workLog["updateAuthor"]["displayName"],
-                                    'email': workLog["updateAuthor"]["key0"]
+                                    'email': workLog["updateAuthor"]["key"]
                                 }).employee_ids.id,
                                 'project_id': projectDB.id,
                                 'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
-                                'date': date_worklog_jira,
+                                'date':  date_utils.convertToLocalTZ(date_worklog_jira, workLog["updateAuthor"]["timeZone"]),
                                 'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
                                 'id_jira': workLog["id"]
                             })
+                self.create_worklog({
+                    'name': '',
+                    'task_id': ticketDB.id,
+                    'employee_id': '',
+                    'project_id': projectDB.id,
+                    'unit_amount': 0.0,
+                    'date': datetime.date.today(),
+                    'last_modified': datetime.datetime.now(),
+                })
             elif ticketDB.last_modified != updated_date:
                 agrs = {
                     'name': t["fields"]["summary"],
@@ -238,34 +245,34 @@ class UpdateData():
                     'last_modified': updated_date
                 }
                 self.update_ticket(agrs, ticketDB)
-            if ticketDB.last_modified >= from_datetime:
-                worklogs = self.jira_api.get_all_worklogs_of_issue(t["key"])["worklogs"]
-                for workLog in worklogs:
-                    date_worklog_jira = date_utils.convertString2Datetime(workLog["started"])
-                    worklogDB = self.worklog_list.get(workLog["id"])
-                    if date_worklog_jira >= from_datetime:
-                        if worklogDB:
-                            agrs = {
-                                'name':workLog["comment"],
-                                'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
-                                'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
-                                'date':  date_utils.convertToLocalTZ(date_worklog_jira, workLog["updateAuthor"]["timeZone"])
-                            }
-                            self.update_worklog(agrs, worklogDB)
-                            del self.worklog_list[workLog["id"]]
-                        else:
-                            self.create_worklog({
-                                'name': workLog["comment"],
-                                'task_id': ticketDB.id,
-                                'employee_id': self.create_user({
-                                    'displayName': workLog["updateAuthor"]["displayName"],
-                                    'email': workLog["updateAuthor"]["key"]
-                                }).employee_ids.id,
-                                'project_id': projectDB.id,
-                                'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
-                                'date': date_utils.convertToLocalTZ(date_worklog_jira, workLog["updateAuthor"]["timeZone"]),
-                                'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
-                                'id_jira': workLog["id"]
-                            })
-                for key, value in self.worklog_list.items():
-                    request.env["account.analytic.line"].sudo().browse(value.id).with_context(not_update_jira=True).unlink()
+                if ticketDB.last_modified >= from_datetime:
+                    worklogs = self.jira_api.get_all_worklogs_of_issue(t["key"])["worklogs"]
+                    for workLog in worklogs:
+                        date_worklog_jira = date_utils.convertString2Datetime(workLog["started"])
+                        worklogDB = self.worklog_list.get(workLog["id"])
+                        if date_worklog_jira >= from_datetime:
+                            if worklogDB:
+                                agrs = {
+                                    'name':workLog["comment"],
+                                    'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
+                                    'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
+                                    'date':  date_utils.convertToLocalTZ(date_worklog_jira, workLog["updateAuthor"]["timeZone"])
+                                }
+                                self.update_worklog(agrs, worklogDB)
+                                del self.worklog_list[workLog["id"]]
+                            else:
+                                self.create_worklog({
+                                    'name': workLog["comment"],
+                                    'task_id': ticketDB.id,
+                                    'employee_id': self.create_user({
+                                        'displayName': workLog["updateAuthor"]["displayName"],
+                                        'email': workLog["updateAuthor"]["key"]
+                                    }).employee_ids.id,
+                                    'project_id': projectDB.id,
+                                    'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
+                                    'date': date_utils.convertToLocalTZ(date_worklog_jira, workLog["updateAuthor"]["timeZone"]),
+                                    'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
+                                    'id_jira': workLog["id"]
+                                })
+        for key, value in self.worklog_list.items():
+            request.env["account.analytic.line"].sudo().browse(value.id).with_context(not_update_jira=True).unlink()
