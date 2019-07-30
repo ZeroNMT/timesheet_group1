@@ -106,6 +106,14 @@ class UpdateData():
                 workLog.id_jira: workLog
             })
 
+    def search_worklogs_by_task(self, lst_task_id):
+        worklogDB = request.env["account.analytic.line"].sudo().search([('task_id', 'in', lst_task_id),
+                                                                        ('id_jira', '!=', None)])
+        for workLog in worklogDB:
+            self.worklog_list.update({
+                workLog.id_jira: workLog
+            })
+
     def update_worklog(self, agrs, worklogDB):
         request.env["account.analytic.line"].sudo().browse(worklogDB.id).with_context(not_update_jira=True).write({
             'name': agrs["name"],
@@ -135,12 +143,36 @@ class UpdateData():
         self.search_users()
         self.search_projects()
         projectDB = self.create_project(key_project)
-        self.search_worklogs(projectDB.id)
-        self.search_tickets(projectDB.id)
+        tickets = self.jira_api.get_all_issues_of_project(key_project)
+        len_tickets = len(tickets)
+        if len_tickets > 200:
+            split_tickets = len_tickets // 150
+            start = 0
+            end = 150
+            for i in range(split_tickets):
+                request.env['account.analytic.line'].sudo().with_delay(priority=2, max_retries=0).update_data_2(
+                    self.username, tickets[start:end], projectDB)
+                start = end
+                end += 150
+        else:
+            self.update_data_2(tickets, projectDB)
 
+
+    def update_data_2(self, tickets, projectDB):
+        self.search_users()
+        if len(self.worklog_list) == 0:
+            lst_task_id = []
+            for t in tickets:
+                ticketDB = self.ticket_list.get(t["key"])
+                if ticketDB:
+                    lst_task_id.append(ticketDB.id)
+            self.search_worklogs_by_task(lst_task_id)
+        else:
+            self.search_worklogs(projectDB.id)
+
+        self.search_tickets(projectDB.id)
         from_datetime = fields.Datetime.to_datetime('2019-07-20 00:00:00')
         date_utils = services.date_utils.DateUtils()
-        tickets = self.jira_api.get_all_issues_of_project(key_project)
         for t in tickets:
             assignee = t["fields"]["assignee"]
             updated_date = date_utils.convertString2Datetime(t["fields"]["updated"])

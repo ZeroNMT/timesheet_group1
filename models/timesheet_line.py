@@ -135,6 +135,16 @@ class AccountAnalyticLine(models.Model):
         UpdateData(login).update_data(key_project)
 
     @api.multi
+    @job(retry_pattern={
+        1: 1 * 60,
+        5: 3 * 60,
+        10: 5 * 60,
+        15: 10 * 60 * 60
+    })
+    def update_data_2(self, login, tickets, projectDB):
+        UpdateData(login).update_data_2(tickets, projectDB)
+
+    @api.multi
     def add_timesheet(self):
         self.ensure_one()
         action = self.env.ref('timesheet_group1.action_my_timesheet_views').read()[0]
