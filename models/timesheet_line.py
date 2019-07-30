@@ -1,7 +1,6 @@
 from odoo import _, api, fields, models, exceptions
 from odoo.http import request
 import datetime
-from odoo.exceptions import AccessError
 from ..manage_data.update_data import UpdateData
 from .. import services
 from odoo.addons.queue_job.job import job
@@ -125,18 +124,6 @@ class AccountAnalyticLine(models.Model):
     })
     def update_data(self, login, key_project):
         UpdateData(login).update_data(key_project)
-
-    @api.multi
-    @job
-    def create_data(self, login, key_project):
-        UpdateData(login).create_data(key_project)
-
-    @api.model
-    def update_timesheet_trigger(self):
-        if not request.env.user["authorization"]:
-            raise exceptions.UserError(_("You isn't Jira's account"))
-        else:
-            UpdateData(self.env.user.login).transform_data()
 
     @api.multi
     def add_timesheet(self):
