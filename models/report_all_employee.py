@@ -93,7 +93,7 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
         context = self.env.context
         empployees_table = options.get('employees')
         list_name_employee = self.get_list_name_employee(empployees_table)
-        if (context.get('print_mode') is None):
+        if context.get('print_mode') is None:
             results_employee = self.get_all_employee(comparison_table['date_from'],comparison_table['date_to'],list_name_employee)
             total_all_project = 0.00
             if line_id is None:
@@ -133,11 +133,12 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
                 for project in result_projects:
                     total_projects += 0.0 if project['sum'] is None else project['sum']
                     lines.append({
-                        'id': str(project["id"]),
+                        'id': "project_%s" % str(project["id"]),
                         'name': project["name"],
                         'level': 4,
                         'parent_id': line_id,
-                        'columns': [{'name': "00:00" if project['sum'] is None else self.covertFloatToTime(project['sum'])}]
+                        'columns': [{'name': "00:00" if project['sum'] is None else self.covertFloatToTime(project['sum'])}],
+                        'caret_options': 'project.project'
                     })
                 lines.append({
                     'id': 'total_%s' % line_id,
@@ -177,7 +178,7 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
                         'name': project["name"],
                         'level': 4,
                         'parent_id': str(employee["id"]),
-                        'columns': [{'name': "00:00" if project['sum'] is None else self.covertFloatToTime(project['sum'])}]
+                        'columns': [{'name': "00:00" if project['sum'] is None else self.covertFloatToTime(project['sum'])}],
                     })
                 lines.append({
                     'id': 'total_%s' % str(employee["id"]),
@@ -250,3 +251,21 @@ class TimesheetAllEmployeeReport(models.AbstractModel):
                 'selected': False
             })
         return employees
+
+    @api.multi
+    def open_detail_project(self, options, params=None):
+        if not params:
+            params = {}
+
+        ctx = self.env.context.copy()
+        ctx.pop('id', '')
+        res_id = params.get('id').split("_")[1]
+        view_id = self.env['ir.model.data'].get_object_reference("project", "edit_project")[1]
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': "project.project",
+            'view_mode': 'form',
+            'views': [(view_id, 'form')],
+            'res_id': int(res_id),
+            'context': ctx,
+        }
