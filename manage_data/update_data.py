@@ -109,7 +109,7 @@ class UpdateData():
     def update_worklog(self, agrs, worklogDB):
         request.env["account.analytic.line"].sudo().browse(worklogDB.id).with_context(not_update_jira=True).write({
             'name': agrs["name"],
-            'unit_amount': agrs["unit_amount"] / (60 * 60),
+            'unit_amount': agrs["unit_amount"],
             'last_modified': agrs["last_modified"],
             'date': agrs["date"],
         })

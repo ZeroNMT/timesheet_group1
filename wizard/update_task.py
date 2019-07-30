@@ -18,7 +18,11 @@ class Update(models.TransientModel):
         else:
 
             request.env['account.analytic.line'].sudo().with_delay().transform_data(self.env.user.login)
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'reload'
+        action = self.env.ref('timesheet_group1.action_my_timesheet_views').read()[0]
+        action['target'] = 'main'
+        action['context'] = {
+            'grid_anconvertDatetime2Stringchor': fields.Date.to_string(datetime.date.today()),
+            "search_default_filter_my_timesheet": 1,
+            "search_default_filter_in_progress": 1
         }
+        return action

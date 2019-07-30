@@ -51,7 +51,7 @@ class Test(models.TransientModel):
             'date': datetime
         })
 
-        action = self.env.ref('timesheet_group1.action_timesheet_views').read()[0]
+        action = self.env.ref('timesheet_group1.action_my_timesheet_views').read()[0]
         action['target'] = 'main'
         action['context'] = {'grid_anconvertDatetime2Stringchor': fields.Date.to_string(self.date)}
         return action
