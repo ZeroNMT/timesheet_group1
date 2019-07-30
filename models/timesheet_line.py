@@ -47,15 +47,24 @@ class AccountAnalyticLine(models.Model):
                 jira_services = services.jira_services.JiraServices(authorization)
                 date_utils = services.date_utils.DateUtils()
                 task = self.env['project.task'].sudo().search([('id', '=', vals["task_id"])])
+                _date = vals["date"]
+                if type(vals["date"]) is str:
+                    _date = _date + "T03:00:00.000+0000"
+                else:
+                    _date = date_utils.convertDatetime2String(vals["date"])
+
                 agr = {
                     'task_key': task.key,
                     'description': vals["name"],
-                    'date': date_utils.convertDatetime2String(vals["date"]),    # edit timezone
+                    'date': _date,    # edit timezone
                     'unit_amount': vals["unit_amount"]
                 }
                 reponse = jira_services.add_worklog(agr)
                 if reponse:
-                    vals.update({'last_modified': date_utils.convertString2Datetime(reponse["updated"])})
+                    vals.update({
+                        'last_modified': date_utils.convertString2Datetime(reponse["updated"]),
+                        'id_jira': str(reponse["id"])
+                    })
                 else:
                     raise exceptions.UserError(_("Cann't update to Jira"))
             else:
@@ -76,7 +85,7 @@ class AccountAnalyticLine(models.Model):
                 authorization = services.aes_cipher.AESCipher().decrypt(self.env.user.authorization)
                 jira_services = services.jira_services.JiraServices(authorization)
                 date_utils = services.date_utils.DateUtils()
-                agrs = vals
+                agrs = vals.copy()
                 agrs.update({
                     "task_key": self.task_id.key,
                     "worklog_id": self.id_jira
@@ -128,9 +137,12 @@ class AccountAnalyticLine(models.Model):
     @api.multi
     def add_timesheet(self):
         self.ensure_one()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'reload'
+        action = self.env.ref('timesheet_group1.action_my_timesheet_views').read()[0]
+        action['target'] = 'main'
+        action['context'] = {
+            'grid_anconvertDatetime2Stringchor': fields.Date.to_string(datetime.date.today()),
+            "search_default_filter_my_timesheet": 1,
+            "search_default_filter_in_progress": 1
         }
-
+        return action
 
