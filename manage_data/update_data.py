@@ -252,13 +252,15 @@ class UpdateData():
                         worklogDB = self.worklog_list.get(workLog["id"])
                         if date_worklog_jira >= from_datetime:
                             if worklogDB:
-                                agrs = {
-                                    'name':workLog["comment"],
-                                    'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
-                                    'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
-                                    'date':  date_utils.convertToLocalTZ(date_worklog_jira, workLog["updateAuthor"]["timeZone"])
-                                }
-                                self.update_worklog(agrs, worklogDB)
+                                worklog_updated = date_utils.convertString2Datetime(workLog["updated"])
+                                if worklogDB.last_modified != worklog_updated:
+                                    agrs = {
+                                        'name':workLog["comment"],
+                                        'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
+                                        'last_modified': worklog_updated,
+                                        'date':  date_utils.convertToLocalTZ(date_worklog_jira, workLog["updateAuthor"]["timeZone"])
+                                    }
+                                    self.update_worklog(agrs, worklogDB)
                                 del self.worklog_list[workLog["id"]]
                             else:
                                 self.create_worklog({
@@ -274,5 +276,11 @@ class UpdateData():
                                     'last_modified': date_utils.convertString2Datetime(workLog["updated"]),
                                     'id_jira': workLog["id"]
                                 })
+            else:
+                worklog_list = self.worklog_list.copy()
+                for key, value in worklog_list.items():
+                    if value.task_id.id == ticketDB.id:
+                        del self.worklog_list[key]
+
         for key, value in self.worklog_list.items():
             request.env["account.analytic.line"].sudo().browse(value.id).with_context(not_update_jira=True).unlink()
