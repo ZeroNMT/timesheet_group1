@@ -121,15 +121,15 @@ class AccountAnalyticLine(models.Model):
         1: 15 * 60,
         5: 20 * 60
     })
-    def transform_data(self, login, not_update=False):
-        UpdateData(login).transform_data(not_update)
+    def transform_data(self, login):
+        UpdateData(login).transform_data()
 
     @api.multi
     @job(retry_pattern={
-        1: 5 * 60,
-        5: 7 * 60,
-        10: 9 * 60,
-        15: 12 * 60 * 60
+        1: 1 * 60,
+        5: 3 * 60,
+        10: 5 * 60,
+        15: 10 * 60 * 60
     })
     def update_data(self, login, key_project):
         UpdateData(login).update_data(key_project)

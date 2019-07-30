@@ -126,14 +126,10 @@ class UpdateData():
             'id_jira': agrs["id_jira"] if agrs.get("id_jira") else None
         })
 
-    def transform_data(self, not_update):
+    def transform_data(self):
         all_projects = self.jira_api.get_all_project()
-        if not_update:
-            for project in all_projects:
-                request.env['account.analytic.line'].sudo().with_delay(priority=1).create_data(self.username, project["key"])
-        else:
-            for project in all_projects:
-                request.env['account.analytic.line'].sudo().with_delay().update_data(self.username, project["key"])
+        for project in all_projects:
+            request.env['account.analytic.line'].sudo().with_delay(priority=1, max_retries=0).update_data(self.username, project["key"])
 
     def update_data(self, key_project):
         self.search_users()
