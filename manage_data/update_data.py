@@ -137,7 +137,7 @@ class UpdateData():
     def transform_data(self):
         all_projects = self.jira_api.get_all_project()
         for project in all_projects:
-            request.env['account.analytic.line'].sudo().with_delay(priority=1, max_retries=0).update_data(self.username, project["key"])
+            request.env['account.analytic.line'].sudo().with_delay(priority=1, max_retries=20).update_data(self.username, project["key"])
 
     def update_data(self, key_project):
         self.search_users()
@@ -145,22 +145,23 @@ class UpdateData():
         projectDB = self.create_project(key_project)
         tickets = self.jira_api.get_all_issues_of_project(key_project)
         len_tickets = len(tickets)
-        if len_tickets > 200:
-            split_tickets = len_tickets // 150
+        if len_tickets > 400:
+            split_tickets = len_tickets // 300
             start = 0
-            end = 150
-            for i in range(split_tickets):
-                request.env['account.analytic.line'].sudo().with_delay(priority=2, max_retries=0).update_data_2(
+            end = 300
+            for i in range(split_tickets + 1):
+                request.env['account.analytic.line'].sudo().with_delay(priority=2, max_retries=20).update_data_2(
                     self.username, tickets[start:end], projectDB)
                 start = end
-                end += 150
+                end += 300
         else:
             self.update_data_2(tickets, projectDB)
 
 
     def update_data_2(self, tickets, projectDB):
+        self.search_tickets(projectDB.id)
         self.search_users()
-        if len(self.worklog_list) == 0:
+        if len(self.projects_list) == 0:
             lst_task_id = []
             for t in tickets:
                 ticketDB = self.ticket_list.get(t["key"])
@@ -170,7 +171,6 @@ class UpdateData():
         else:
             self.search_worklogs(projectDB.id)
 
-        self.search_tickets(projectDB.id)
         from_datetime = fields.Datetime.to_datetime('2019-07-20 00:00:00')
         date_utils = services.date_utils.DateUtils()
         for t in tickets:

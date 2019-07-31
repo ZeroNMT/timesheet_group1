@@ -102,24 +102,24 @@
             />
 
 
-    <record model="ir.rule" id="project_rule">
-        <field name="name">Project Rule</field>
-        <field name="model_id" ref="timesheet_group1.model_project_project"/>
-        <field name="global" eval="True"/>
-        <field name="domain_force">[('user_ids','child_of',[user.id])]</field>
-    </record>
+<!--    <record model="ir.rule" id="project_rule">-->
+<!--        <field name="name">Project Rule</field>-->
+<!--        <field name="model_id" ref="timesheet_group1.model_project_project"/>-->
+<!--        <field name="global" eval="True"/>-->
+<!--        <field name="domain_force">[('user_ids','child_of',[user.id])]</field>-->
+<!--    </record>-->
 
-    <record model="ir.rule" id="task_rule">
-        <field name="name">Task Rule</field>
-        <field name="model_id" ref="timesheet_group1.model_project_task"/>
-        <field name="global" eval="True"/>
-        <field name="domain_force">[('project_id.user_ids','child_of',[user.id])]</field>
-    </record>
+<!--    <record model="ir.rule" id="task_rule">-->
+<!--        <field name="name">Task Rule</field>-->
+<!--        <field name="model_id" ref="timesheet_group1.model_project_task"/>-->
+<!--        <field name="global" eval="True"/>-->
+<!--        <field name="domain_force">[('project_id.user_ids','child_of',[user.id])]</field>-->
+<!--    </record>-->
 
-    <record model="ir.rule" id="worklog_rule">
-        <field name="name">Worklog Rule</field>
-        <field name="model_id" ref="timesheet_group1.model_account_analytic_line"/>
-        <field name="global" eval="True"/>
-        <field name="domain_force">[('project_id.user_ids','child_of',[user.id])]</field>
-    </record>
+<!--    <record model="ir.rule" id="worklog_rule">-->
+<!--        <field name="name">Worklog Rule</field>-->
+<!--        <field name="model_id" ref="timesheet_group1.model_account_analytic_line"/>-->
+<!--        <field name="global" eval="True"/>-->
+<!--        <field name="domain_force">[('project_id.user_ids','child_of',[user.id])]</field>-->
+<!--    </record>-->
 </odoo>
