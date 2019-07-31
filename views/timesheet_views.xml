@@ -93,9 +93,12 @@
                 domain="[
                 '|',
                     ('task_id.user_id','=',uid),
-                     '|',
-                        ('employee_id.user_id','=',uid),
-                        ('task_id.user_id', '=' , False)]"
+                    ('employee_id.user_id','=',uid)]"
+            />
+            <separator />
+            <filter name="filter_zero_task"
+                string="Zero ticket"
+                domain="[('task_id.user_id', '=' , False)]"
             />
             <separator />
             <filter name="filter_in_progress"
