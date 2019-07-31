@@ -152,6 +152,7 @@ class AccountAnalyticLine(models.Model):
         action['context'] = {
             'grid_anconvertDatetime2Stringchor': fields.Date.to_string(datetime.date.today()),
             "search_default_filter_my_timesheet": 1,
+            "search_default_filter_zero_task": 1,
             "search_default_filter_in_progress": 1
         }
         return action

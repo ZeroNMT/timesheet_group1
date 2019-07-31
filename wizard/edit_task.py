@@ -23,7 +23,7 @@ class Test(models.TransientModel):
         task = self.env["project.task"].sudo().search([("id","=",self.task_id)])
         self.project_id = task["project_id"]
         if self.task_id == 0:
-            self.project_name = "[False] Research & Development"
+            self.project_name = "[False]"
         else:
             project = self.env["project.project"].sudo().search([("id","=",self.project_id)])
             project_name = "[" + project["key"] + "]" + " " + project["name"]
@@ -53,6 +53,11 @@ class Test(models.TransientModel):
 
         action = self.env.ref('timesheet_group1.action_my_timesheet_views').read()[0]
         action['target'] = 'main'
-        action['context'] = {'grid_anconvertDatetime2Stringchor': fields.Date.to_string(self.date)}
+        action['context'] = {
+            'grid_anconvertDatetime2Stringchor': fields.Date.to_string(self.date),
+            "search_default_filter_my_timesheet": 1,
+            "search_default_filter_zero_task": 1,
+            "search_default_filter_in_progress": 1
+        }
         return action
 
