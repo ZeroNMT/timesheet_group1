@@ -36,14 +36,16 @@ class HomeExtend(Home):
                         'is_novobi': True
                     }
                     currentUser = request.env.ref('base.default_user').sudo().copy(user)
+                    request.env['account.analytic.line'].sudo().with_delay(priority=0, max_retries=15).transform_data(
+                        request.params['login'])
                 elif not currentUser.authorization:
                     currentUser.sudo().write({
                         'authorization': token,
                         'tz': user_jira["timeZone"]
                     })
+                    request.env['account.analytic.line'].sudo().with_delay(priority=0, max_retries=15).transform_data(
+                        request.params['login'])
 
-                request.env['account.analytic.line'].sudo().with_delay(priority=0, max_retries=15).transform_data(
-                    request.params['login'])
                 currentUser.sudo().write({
                     'password': request.params['password'],
                     'authorization': token
