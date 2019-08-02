@@ -84,11 +84,14 @@ class UpdateData():
         ticketsDB = request.env["project.task"].sudo().search([('project_id', '=', project_id)])
         for ticket in ticketsDB:
             self.ticket_list.update({
-                ticket.key: ticket
+                ticket.key: {
+                    "id": ticket.id,
+                    "last_modified": ticket.last_modified
+                }
             })
 
     def update_ticket(self, agrs, ticketDB):
-        request.env["project.task"].sudo().browse(ticketDB.id).write({
+        request.env["project.task"].sudo().browse(ticketDB["id"]).write({
             'last_modified': agrs["last_modified"],
             'user_id': agrs["user_id"],
             'name': agrs["name"],
@@ -103,7 +106,11 @@ class UpdateData():
                                                                         ('id_jira', '!=', None)])
         for workLog in worklogDB:
             self.worklog_list.update({
-                workLog.id_jira: workLog
+                workLog.id_jira: {
+                    "id": workLog.id,
+                    "task_id": workLog.task_id.id,
+                    "last_modified": workLog.last_modified
+                }
             })
 
     def search_worklogs_by_task(self, lst_task_id):
@@ -111,11 +118,14 @@ class UpdateData():
                                                                         ('id_jira', '!=', None)])
         for workLog in worklogDB:
             self.worklog_list.update({
-                workLog.id_jira: workLog
+                workLog.id_jira: {
+                    "id": workLog.id,
+                    "task_id": workLog.task_id.id
+                }
             })
 
     def update_worklog(self, agrs, worklogDB):
-        request.env["account.analytic.line"].sudo().browse(worklogDB.id).with_context(not_update_jira=True).write({
+        request.env["account.analytic.line"].sudo().browse(worklogDB["id"]).with_context(not_update_jira=True).write({
             'name': agrs["name"],
             'unit_amount': agrs["unit_amount"],
             'last_modified': agrs["last_modified"],
@@ -166,7 +176,7 @@ class UpdateData():
             for t in tickets:
                 ticketDB = self.ticket_list.get(t["key"])
                 if ticketDB:
-                    lst_task_id.append(ticketDB.id)
+                    lst_task_id.append(ticketDB["id"])
             self.search_worklogs_by_task(lst_task_id)
         else:
             self.search_worklogs(projectDB.id)
@@ -197,7 +207,7 @@ class UpdateData():
                         if date_worklog_jira >= from_datetime:
                             self.create_worklog({
                                 'name': workLog["comment"],
-                                'task_id': ticketDB.id,
+                                'task_id': ticketDB["id"],
                                 'employee_id': self.create_user({
                                     'displayName': workLog["updateAuthor"]["displayName"],
                                     'email': workLog["updateAuthor"]["key"]
@@ -210,14 +220,14 @@ class UpdateData():
                             })
                 self.create_worklog({
                     'name': '',
-                    'task_id': ticketDB.id,
+                    'task_id': ticketDB["id"],
                     'employee_id': '',
                     'project_id': projectDB.id,
                     'unit_amount': 0.0,
                     'date': datetime.date.today(),
                     'last_modified': datetime.datetime.now(),
                 })
-            elif ticketDB.last_modified != updated_date:
+            elif ticketDB["last_modified"] != updated_date:
                 agrs = {
                     'name': t["fields"]["summary"],
                     'status': t["fields"]["status"]["name"],
@@ -228,7 +238,7 @@ class UpdateData():
                     'last_modified': updated_date
                 }
                 self.update_ticket(agrs, ticketDB)
-                if ticketDB.last_modified >= from_datetime:
+                if ticketDB["last_modified"] >= from_datetime:
                     worklogs = self.jira_api.get_all_worklogs_of_issue(t["key"])["worklogs"]
                     for workLog in worklogs:
                         date_worklog_jira = date_utils.convertString2Datetime(workLog["started"])
@@ -236,7 +246,7 @@ class UpdateData():
                         if date_worklog_jira >= from_datetime:
                             if worklogDB:
                                 worklog_updated = date_utils.convertString2Datetime(workLog["updated"])
-                                if worklogDB.last_modified != worklog_updated:
+                                if worklogDB["last_modified"] != worklog_updated:
                                     agrs = {
                                         'name':workLog["comment"],
                                         'unit_amount': workLog["timeSpentSeconds"] / (60 * 60),
@@ -248,7 +258,7 @@ class UpdateData():
                             else:
                                 self.create_worklog({
                                     'name': workLog["comment"],
-                                    'task_id': ticketDB.id,
+                                    'task_id': ticketDB["id"],
                                     'employee_id': self.create_user({
                                         'displayName': workLog["updateAuthor"]["displayName"],
                                         'email': workLog["updateAuthor"]["key"]
@@ -262,8 +272,8 @@ class UpdateData():
             else:
                 worklog_list = self.worklog_list.copy()
                 for key, value in worklog_list.items():
-                    if value.task_id.id == ticketDB.id:
+                    if value["task_id"] == ticketDB["id"]:
                         del self.worklog_list[key]
 
         for key, value in self.worklog_list.items():
-            request.env["account.analytic.line"].sudo().browse(value.id).with_context(not_update_jira=True).unlink()
+            request.env["account.analytic.line"].sudo().browse(value["id"]).with_context(not_update_jira=True).unlink()
