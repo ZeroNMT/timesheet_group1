@@ -118,8 +118,8 @@ class AccountAnalyticLine(models.Model):
 
     @api.multi
     @job(retry_pattern={
-        1: 15 * 60,
-        5: 20 * 60
+        1: 0.5 * 60,
+        5: 3 * 60
     })
     def transform_data(self, login):
         UpdateData(login).transform_data()
