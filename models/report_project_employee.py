@@ -221,6 +221,22 @@ class TimesheetProjectEmployeeReport(models.AbstractModel):
             options["projects"] = self._get_projects()
         else:
             options["projects"] = previous_options["projects"]
+            list_projects_is_selected = list(filter(lambda x: x["selected"] is True, options["projects"]))
+            list_projects_is_unselected = []
+            list_projects = self._get_projects()
+            for x in list_projects_is_selected:
+                list_projects_is_unselected.append(x.copy())
+            list_name = []
+            for x in list_projects:
+                list_name.append(x["name"])
+            for x in list_projects_is_unselected:
+                x["selected"] = False
+                if x in list_projects:
+                    list_projects.remove(x)
+            for x in list_projects_is_selected:
+                if x["name"] in list_name:
+                    list_projects.append(x)
+            options["projects"] = list_projects
         return options
 
     def _get_projects(self):
